@@ -1,5 +1,5 @@
-/* ShadowPrompt Enterprise Security Console Stylesheet */
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+/* ShadowPrompt: Enterprise Open-Source AI Security Console */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -10,46 +10,49 @@ html, body {
   width: 100%;
   margin: 0;
   padding: 0;
-  background-color: #070B12;
+  background-color: #080A0F;
   color: #E2E8F0;
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-.font-serif-title {
-  font-family: 'Instrument Serif', Georgia, serif;
+.font-display {
+  font-family: 'Outfit', sans-serif;
 }
 
-.font-mono-code {
+.font-mono {
   font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* Glassmorphism & High-End Hairline Borders */
-.glass-panel {
-  background: rgba(13, 19, 33, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Background Gradients & Noise */
+.bg-obsidian-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.07) 0%, transparent 60%),
+              radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+              #080A0F;
 }
 
-.glass-panel-subtle {
-  background: rgba(16, 24, 40, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+/* Luxury Titanium Glass Panels */
+.titanium-card {
+  background: rgba(14, 18, 27, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
-.glass-panel-accent {
-  background: rgba(13, 27, 42, 0.9);
-  border: 1px solid rgba(0, 229, 255, 0.25);
-  box-shadow: 0 0 25px rgba(0, 229, 255, 0.06);
+.titanium-card-glow {
+  background: rgba(14, 18, 27, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 0 35px -5px rgba(56, 189, 248, 0.12);
 }
 
-/* Tactical Token Inspection Grid */
+/* Interactive Byte Grid */
 .token-cell {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 6px;
+  padding: 3px 7px;
   margin: 2px;
   font-family: 'Geist Mono', monospace;
   font-size: 11px;
@@ -60,9 +63,9 @@ html, body {
 }
 
 .token-cell:hover {
-  transform: translateY(-1px);
-  z-index: 20;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  transform: translateY(-2px);
+  z-index: 30;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.8);
 }
 
 .token-normal {
@@ -72,36 +75,36 @@ html, body {
 }
 
 .token-zero-width {
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid #EF4444;
-  color: #FCA5A5;
+  background: rgba(244, 63, 94, 0.25);
+  border: 1px solid #F43F5E;
+  color: #FDA4AF;
   font-weight: 700;
-  animation: pulse-border 1.8s infinite;
+  animation: pulse-danger 1.5s infinite;
 }
 
 .token-rlo {
-  background: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.25);
   border: 1px solid #F59E0B;
   color: #FCD34D;
   font-weight: 700;
 }
 
 .token-delimiter {
-  background: rgba(168, 85, 247, 0.2);
+  background: rgba(168, 85, 247, 0.25);
   border: 1px solid #A855F7;
-  color: #D8B4FE;
+  color: #E9D5FF;
   font-weight: 600;
 }
 
-@keyframes pulse-border {
-  0%, 100% { border-color: #EF4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.3); }
-  50% { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
+@keyframes pulse-danger {
+  0%, 100% { border-color: #F43F5E; box-shadow: 0 0 8px rgba(244, 63, 94, 0.4); }
+  50% { border-color: rgba(244, 63, 94, 0.4); box-shadow: 0 0 0 rgba(244, 63, 94, 0); }
 }
 
-/* Subtle Grid Background Pattern */
-.bg-grid-pattern {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 24px 24px;
+/* Subtle dot grid pattern */
+.dot-pattern {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
 /* Custom Scrollbars */
@@ -110,10 +113,10 @@ html, body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #070B12;
+  background: #080A0F;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
+  background: #1E2638;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
