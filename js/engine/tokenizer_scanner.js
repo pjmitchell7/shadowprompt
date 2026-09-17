@@ -1,21 +1,27 @@
 /**
- * TokenizerScanner: Sub-millisecond pre-inference token inspection engine (ES6).
- * Ported directly from the Python core. Zero external dependencies.
+ * TokenizerScanner: Industrial-grade pre-inference token inspection engine (ES6).
+ * Features:
+ * - Multi-codepoint zero-width steganography decoding (ZWSP, ZWNJ, ZWJ, WJ, BOM)
+ * - Leetspeak & spaced-out evasion de-obfuscation
+ * - Bidirectional text override detection (RTL spoofing)
+ * - Homoglyph identification (Cyrillic, Greek)
+ * - Shannon character entropy profiling
+ * - Detailed character-by-character token mapping for interactive UI byte inspector
  */
 
 const ZERO_WIDTH_MAP = {
-  '\u200B': 'Zero-Width Space (ZWSP)',
-  '\u200C': 'Zero-Width Non-Joiner (ZWNJ)',
-  '\u200D': 'Zero-Width Joiner (ZWJ)',
-  '\u2060': 'Word Joiner (WJ)',
-  '\uFEFF': 'Zero-Width No-Break Space / BOM',
-  '\u200E': 'Left-to-Right Mark (LRM)',
-  '\u200F': 'Right-to-Left Mark (RLM)',
-  '\u202A': 'Left-to-Right Embedding',
-  '\u202B': 'Right-to-Left Embedding',
-  '\u202C': 'Pop Directional Formatting',
-  '\u202D': 'Left-to-Right Override',
-  '\u202E': 'Right-to-Left Override'
+  '\u200B': { name: 'Zero-Width Space', bit: '0', hex: 'U+200B' },
+  '\u200C': { name: 'Zero-Width Non-Joiner', bit: '1', hex: 'U+200C' },
+  '\u200D': { name: 'Zero-Width Joiner', bit: 'F', hex: 'U+200D' },
+  '\u2060': { name: 'Word Joiner', bit: 'C', hex: 'U+2060' },
+  '\uFEFF': { name: 'Zero-Width No-Break / BOM', bit: 'S', hex: 'U+FEFF' },
+  '\u200E': { name: 'Left-to-Right Mark', bit: 'L', hex: 'U+200E' },
+  '\u200F': { name: 'Right-to-Left Mark', bit: 'R', hex: 'U+200F' },
+  '\u202A': { name: 'LRE Embedding', bit: 'E', hex: 'U+202A' },
+  '\u202B': { name: 'RLE Embedding', bit: 'E', hex: 'U+202B' },
+  '\u202C': { name: 'PDF Formatting', bit: 'P', hex: 'U+202C' },
+  '\u202D': { name: 'LRO Override', bit: 'O', hex: 'U+202D' },
+  '\u202E': { name: 'RLO Override (Spoofing)', bit: 'O', hex: 'U+202E' }
 };
 
 const ZERO_WIDTH_REGEX = /[\u200B-\u200F\u2060\uFEFF\u202A-\u202E]/g;
@@ -23,12 +29,38 @@ const ZERO_WIDTH_REGEX = /[\u200B-\u200F\u2060\uFEFF\u202A-\u202E]/g;
 const HOMOGLYPH_MAP = {
   '\u0430': 'a', '\u0441': 'c', '\u0435': 'e', '\u043E': 'o',
   '\u0440': 'p', '\u0455': 's', '\u0445': 'x', '\u0443': 'y',
-  '\u0456': 'i', '\u0458': 'j'
+  '\u0456': 'i', '\u0458': 'j', '\u03BF': 'o', '\u03B1': 'a',
+  '\u03BD': 'v'
+};
+
+const LEET_MAP = {
+  '0': 'o', '1': 'i', '!': 'i', '3': 'e', '4': 'a', '@': 'a',
+  '5': 's', '$': 's', '7': 't', '+': 't', '8': 'b', '9': 'g'
 };
 
 export class TokenizerScanner {
-  constructor(entropyThreshold = 4.8) {
+  constructor(entropyThreshold = 4.85) {
     this.entropyThreshold = entropyThreshold;
+  }
+
+  normalizeObfuscatedText(text) {
+    // 1. Strip zero-width codepoints
+    let clean = text.replace(ZERO_WIDTH_REGEX, '');
+    // 2. Homoglyph normalization
+    clean = clean.split('').map(c => HOMOGLYPH_MAP[c] || c).join('');
+    // 3. Leetspeak de-obfuscation
+    clean = clean.split('').map(c => LEET_MAP[c] || c).join('');
+    // 4. Collapse space-padding (e.g. 'i g n o r e' -> 'ignore')
+    const words = clean.split(/\s+/);
+    const collapsedWords = words.map(w => {
+      if (w.length === 1) return w;
+      return w;
+    });
+    // Check for single character spacing: "i g n o r e" -> length of parts == 1
+    if (words.length > 3 && words.slice(0, 6).every(w => w.length === 1)) {
+      clean = words.join('');
+    }
+    return clean.toLowerCase().normalize('NFKD');
   }
 
   calculateEntropy(text) {
@@ -72,27 +104,41 @@ export class TokenizerScanner {
     const t0 = performance.now();
     const threats = [];
     const invisibleChars = [];
+    const annotatedTokens = [];
+
+    // Detailed token annotation for the visual inspector
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const hex = 'U+' + char.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0');
+      const isZeroWidth = Boolean(ZERO_WIDTH_MAP[char]);
+      const isHomoglyph = Boolean(HOMOGLYPH_MAP[char]);
+
+      annotatedTokens.push({
+        index: i,
+        char: isZeroWidth ? '·' : char,
+        actualChar: char,
+        hex,
+        isZeroWidth,
+        isHomoglyph,
+        zeroWidthInfo: ZERO_WIDTH_MAP[char] || null,
+        homoglyphTarget: HOMOGLYPH_MAP[char] || null
+      });
+
+      if (isZeroWidth) {
+        invisibleChars.push(char);
+      }
+    }
 
     // 1. Zero-width character scan
-    let match;
-    const regex = new RegExp(ZERO_WIDTH_REGEX);
-    while ((match = regex.exec(text)) !== null) {
-      const char = match[0];
-      invisibleChars.push(char);
-      const codeHex = '\\u' + char.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0');
-      const name = ZERO_WIDTH_MAP[codeHex] || `Unicode U+${char.charCodeAt(0).toString(16).toUpperCase()}`;
+    if (invisibleChars.length > 0) {
       threats.push({
         threatType: 'ZERO_WIDTH_STEGANOGRAPHY',
         severity: 'CRITICAL',
-        description: `Stealth token smuggling detected: ${name}`,
-        offset: [match.index, match.index + 1]
+        description: `Concealed ${invisibleChars.length} zero-width formatting codepoints within token stream.`,
+        invisibleCount: invisibleChars.length
       });
-    }
 
-    // Attempt binary decoding
-    let decodedStego = null;
-    if (invisibleChars.length > 0) {
-      decodedStego = this.decodeZeroWidthBinary(invisibleChars);
+      const decodedStego = this.decodeZeroWidthBinary(invisibleChars);
       if (decodedStego) {
         threats.push({
           threatType: 'EXTRACTED_STEGANOGRAPHIC_PAYLOAD',
@@ -103,34 +149,40 @@ export class TokenizerScanner {
       }
     }
 
-    // 2. Homoglyph audit
-    let homoglyphCount = 0;
-    for (let i = 0; i < text.length; i++) {
-      if (HOMOGLYPH_MAP[text[i]]) {
-        homoglyphCount++;
-      }
+    // 2. RTL Spoofing Check (U+202E RLO override)
+    if (text.includes('\u202E')) {
+      threats.push({
+        threatType: 'BIDI_OVERRIDE_SPOOF',
+        severity: 'CRITICAL',
+        description: 'Right-to-Left Override (U+202E) detected: Visual stream is reversed to conceal attack commands from human audit.'
+      });
     }
-    if (homoglyphCount > 0) {
+
+    // 3. Homoglyph audit
+    let homoglyphHits = 0;
+    for (let i = 0; i < text.length; i++) {
+      if (HOMOGLYPH_MAP[text[i]]) homoglyphHits++;
+    }
+    if (homoglyphHits > 0) {
       threats.push({
         threatType: 'HOMOGLYPH_EVASION',
         severity: 'HIGH',
-        description: `Detected ${homoglyphCount} Cyrillic/Greek homoglyph substitutions designed to evade keyword filters.`
+        description: `Detected ${homoglyphHits} Cyrillic/Greek homoglyphs mapped to Latin counterparts to bypass keyword filters.`
       });
     }
 
-    // 3. Shannon Entropy Check
+    // 4. Shannon Entropy Check
     const entropy = this.calculateEntropy(text);
-    if (entropy > this.entropyThreshold && text.length > 40) {
+    if (entropy > this.entropyThreshold && text.length > 45) {
       threats.push({
         threatType: 'HIGH_ENTROPY_ANOMALY',
         severity: 'MEDIUM',
-        description: `Text entropy (${entropy}) exceeds threshold (${this.entropyThreshold}), indicating obfuscated or base64 payloads.`
+        description: `Shannon entropy (${entropy}) exceeds threshold (${this.entropyThreshold}), indicating obfuscated/encrypted payloads.`
       });
     }
 
-    // Sanitized output
     const sanitized = text.replace(ZERO_WIDTH_REGEX, '').normalize('NFKC');
-    const latencyMs = Math.round((performance.now() - t0) * 1000) / 1000;
+    const latencyMs = Math.max(0.015, Math.round((performance.now() - t0) * 1000) / 1000);
 
     return {
       isSafe: threats.length === 0,
@@ -140,7 +192,9 @@ export class TokenizerScanner {
       rawCharacterCount: text.length,
       invisibleCharacterCount: invisibleChars.length,
       shannonEntropy: entropy,
-      steganographyDecodedPayload: decodedStego
+      annotatedTokens,
+      normalizedPayload: this.normalizeObfuscatedText(text),
+      steganographyDecodedPayload: this.decodeZeroWidthBinary(invisibleChars)
     };
   }
 }
