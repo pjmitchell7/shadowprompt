@@ -1,75 +1,120 @@
-/* ShadowPrompt Industrial Cyber Defense Console */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+/* ShadowPrompt Enterprise Security Console Stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 html, body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #06090F;
-  color: #E2E8F0;
   overflow-x: hidden;
   width: 100%;
   margin: 0;
   padding: 0;
+  background-color: #070B12;
+  color: #E2E8F0;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-code, pre, .font-mono {
-  font-family: 'JetBrains Mono', monospace;
+.font-serif-title {
+  font-family: 'Instrument Serif', Georgia, serif;
 }
 
-/* Glassmorphic Cyber Panels */
+.font-mono-code {
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Glassmorphism & High-End Hairline Borders */
 .glass-panel {
-  background: rgba(13, 19, 33, 0.75);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  background: rgba(13, 19, 33, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.glass-panel:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+.glass-panel-subtle {
+  background: rgba(16, 24, 40, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Tactical glowing accents */
-.glow-cyan {
-  box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.35);
+.glass-panel-accent {
+  background: rgba(13, 27, 42, 0.9);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.06);
 }
 
-.glow-red {
-  box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.4);
-}
-
-/* Subtle CRT Scanline overlay */
-.scanline-overlay {
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-  background-size: 100% 3px, 6px 100%;
-  pointer-events: none;
-}
-
-/* Byte token grid pills */
-.byte-pill {
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
+/* Tactical Token Inspection Grid */
+.token-cell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  margin: 2px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  cursor: crosshair;
   user-select: none;
 }
-.byte-pill:hover {
-  transform: translateY(-2px);
+
+.token-cell:hover {
+  transform: translateY(-1px);
+  z-index: 20;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
-/* Custom Tactical Scrollbars */
+.token-normal {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94A3B8;
+}
+
+.token-zero-width {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #EF4444;
+  color: #FCA5A5;
+  font-weight: 700;
+  animation: pulse-border 1.8s infinite;
+}
+
+.token-rlo {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid #F59E0B;
+  color: #FCD34D;
+  font-weight: 700;
+}
+
+.token-delimiter {
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid #A855F7;
+  color: #D8B4FE;
+  font-weight: 600;
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: #EF4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.3); }
+  50% { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Subtle Grid Background Pattern */
+.bg-grid-pattern {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #06090F;
+  background: #070B12;
 }
 ::-webkit-scrollbar-thumb {
   background: #1E293B;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;

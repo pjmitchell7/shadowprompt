@@ -436,3 +436,25 @@ window.addEventListener('DOMContentLoaded', () => {
     executeScan();
   }
 });
+
+// Header Dossier Button
+const headerDossierBtn = document.getElementById('header-dossier-btn');
+if (headerDossierBtn) {
+  headerDossierBtn.addEventListener('click', () => {
+    sound.playClick();
+    const dossierTabBtn = document.querySelector('[data-tab="tab-dossier"]');
+    if (dossierTabBtn) dossierTabBtn.click();
+  });
+}
+
+// Copy Email Button
+const copyEmailBtn = document.getElementById('copy-email-btn');
+if (copyEmailBtn) {
+  copyEmailBtn.addEventListener('click', () => {
+    sound.playClick();
+    navigator.clipboard.writeText('pjmitchell@wm.edu').then(() => {
+      copyEmailBtn.textContent = 'Email Copied!';
+      setTimeout(() => (copyEmailBtn.textContent = 'Copy Email'), 2000);
+    });
+  });
+}
