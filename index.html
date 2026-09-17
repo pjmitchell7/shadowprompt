@@ -573,29 +573,162 @@ clean_prompt, threats = proxy.inspect_stream(request.raw_bytes)</code>
         </div>
       </div>
 
-      <!-- FULL-BLEED INTERACTIVE EMBEDDED RESUME VIEWER -->
-      <div class="glass-panel p-6 rounded-2xl border-slate-800 space-y-4">
-        <div class="flex items-center justify-between">
+      <!-- FULL-BLEED INTERACTIVE VERIFIED RESUME CARD -->
+      <div class="glass-panel p-6 sm:p-8 rounded-2xl border-slate-800 space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
-            <h3 class="text-base font-bold text-white font-serif-title">Integrated 1-Page Tailored Resume</h3>
-            <p class="text-xs text-slate-400 font-mono">Full-screen verified PDF document &middot; Defense, AI Systems &amp; Enterprise Consulting</p>
+            <h3 class="text-lg font-bold text-white font-serif-title">Verified Candidate Resume &middot; Full Document View</h3>
+            <p class="text-xs text-slate-400 font-mono">Tailored for AI Systems Engineering, Enterprise Defense &amp; GovTech Practice</p>
           </div>
           <div class="flex items-center space-x-2 font-mono text-xs">
-            <a href="assets/Paul_Mitchell_BoozAllen_AIEngineer.pdf" target="_blank" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+            <button id="toggle-pdf-view-btn" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+              Switch to Raw PDF View
+            </button>
+            <a href="assets/Paul_Mitchell_BoozAllen_AIEngineer.pdf" target="_blank" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 transition">
               Open Full Window
             </a>
           </div>
         </div>
 
-        <!-- Full-Page Embedded Frame -->
-        <div class="w-full bg-[#161B22] rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
-          <iframe src="assets/Paul_Mitchell_BoozAllen_AIEngineer.pdf#toolbar=1&navpanes=0" class="w-full h-[950px] border-0" title="Paul Mitchell Tailored Resume">
-            <div class="p-8 text-center text-slate-400 font-mono text-xs">
-              PDF viewer not supported by this browser.
-              <a href="assets/Paul_Mitchell_BoozAllen_AIEngineer.pdf" class="text-cyan-400 underline ml-2">Click here to download directly</a>.
+        <!-- Semantic Resume Content (Always Visible, Zero Black Boxes) -->
+        <div id="semantic-resume-view" class="bg-[#0B111D] p-6 sm:p-8 rounded-xl border border-slate-800/80 space-y-6 text-slate-200">
+          
+          <!-- Resume Top Header -->
+          <div class="border-b border-slate-800 pb-4 space-y-1">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <h1 class="text-2xl font-bold tracking-wider text-white font-mono uppercase">Paul Mitchell</h1>
+              <span class="text-xs font-mono text-cyan-400 font-bold">U.S. Citizen &middot; Clearable Secret / TS / SCI</span>
             </div>
-          </iframe>
+            <div class="text-xs font-mono text-slate-400">
+              ARTIFICIAL INTELLIGENCE ENGINEER &middot; AGENTIC SYSTEMS &amp; AI SAFETY
+            </div>
+            <div class="text-[11px] font-mono text-slate-500 pt-1 flex flex-wrap gap-x-4 gap-y-1">
+              <span>Riverdale, MD</span>
+              <span>&middot;</span>
+              <span>(413) 204-0493</span>
+              <span>&middot;</span>
+              <a href="mailto:pjmitchell@wm.edu" class="text-cyan-400 hover:underline">pjmitchell@wm.edu</a>
+              <span>&middot;</span>
+              <a href="https://pjmitchell7.github.io/shadowprompt" class="text-cyan-400 hover:underline">pjmitchell7.github.io/shadowprompt</a>
+            </div>
+          </div>
+
+          <!-- Professional Summary -->
+          <div class="space-y-1.5">
+            <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Professional Summary</h4>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              William &amp; Mary M.S. in Computer Science candidate (3.95 GPA, AI/ML concentration) and clearable U.S. citizen targeting enterprise AI Engineering &amp; Agentic Systems practices. Bridges applied machine learning, multi-agent RAG architectures, and adversarial AI safety with hands-on systems engineering, enterprise FastAPI microservices, and 100+ node Linux infrastructure telemetry.
+            </p>
+          </div>
+
+          <!-- Technical Skills Matrix -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Technical Skills</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+              <div class="bg-black/40 p-3 rounded-lg border border-slate-800/80">
+                <span class="text-slate-400 font-semibold block mb-1">Agentic AI &amp; LLM Systems:</span>
+                <span class="text-slate-200">LangGraph, LangChain, RAG architectures, vector databases (FAISS, Milvus), prompt engineering, LLM guardrails</span>
+              </div>
+              <div class="bg-black/40 p-3 rounded-lg border border-slate-800/80">
+                <span class="text-slate-400 font-semibold block mb-1">Machine Learning &amp; NLP:</span>
+                <span class="text-slate-200">PyTorch, Hugging Face, DistilBERT, Sentence-BERT, BERTopic, LightGBM, scikit-learn, model evaluation</span>
+              </div>
+              <div class="bg-black/40 p-3 rounded-lg border border-slate-800/80">
+                <span class="text-slate-400 font-semibold block mb-1">Backend &amp; Cloud Engineering:</span>
+                <span class="text-slate-200">Python, FastAPI, REST APIs, Docker, AWS (S3, EC2, Bedrock), Linux (Ubuntu), Git/GitLab CI, SQL</span>
+              </div>
+              <div class="bg-black/40 p-3 rounded-lg border border-slate-800/80">
+                <span class="text-slate-400 font-semibold block mb-1">Systems &amp; Observability:</span>
+                <span class="text-slate-200">Prometheus, Grafana, telemetry instrumentation, Puppet, NIST AI Risk Management Framework, automated evaluation</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Professional Experience -->
+          <div class="space-y-4">
+            <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Technical &amp; Professional Experience</h4>
+            
+            <div class="space-y-1.5">
+              <div class="flex flex-wrap items-baseline justify-between text-xs">
+                <span class="font-bold text-white">Data Analytics &amp; AI Extern &middot; Extern (Amazon-Sponsored Project)</span>
+                <span class="text-slate-400 font-mono">Jun 2025 &ndash; Sep 2025 | Remote</span>
+              </div>
+              <ul class="list-disc list-inside space-y-1 text-xs text-slate-300 leading-relaxed">
+                <li>Engineered end-to-end NLP pipelines combining fine-tuned DistilBERT (F1 = 0.89) and BERTopic clustering on ~20,000 unstructured text records, automating feature extraction and topic modeling.</li>
+                <li>Built a predictive classification engine using LightGBM and deployed an interactive Streamlit application delivering real-time decision-support analytics and metric visualization for leadership.</li>
+                <li>Prototyped an LLM retrieval insight interface querying structured text corpora with grounded citations.</li>
+              </ul>
+            </div>
+
+            <div class="space-y-1.5 pt-2 border-t border-slate-800/60">
+              <div class="flex flex-wrap items-baseline justify-between text-xs">
+                <span class="font-bold text-white">IT Administrator &middot; William &amp; Mary Technology Support Center</span>
+                <span class="text-slate-400 font-mono">Feb 2025 &ndash; Present | Williamsburg, VA</span>
+              </div>
+              <ul class="list-disc list-inside space-y-1 text-xs text-slate-300 leading-relaxed">
+                <li>Administer 100+ Linux instructional compute servers, configuring networking, DNS, and user isolation via Puppet.</li>
+                <li>Deployed Prometheus and Grafana telemetry dashboards monitoring compute cluster utilization, hardware memory pressure, and node health, accelerating incident triage and infrastructure reliability.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Key Technical Projects -->
+          <div class="space-y-4">
+            <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Key Technical Projects</h4>
+            
+            <div class="space-y-1.5">
+              <div class="flex flex-wrap items-baseline justify-between text-xs">
+                <span class="font-bold text-white">ShadowPrompt: Adversarial LLM Red-Teaming &amp; Honey-Prompt Defense</span>
+                <span class="text-slate-400 font-mono">2026 | pjmitchell7.github.io/shadowprompt</span>
+              </div>
+              <ul class="list-disc list-inside space-y-1 text-xs text-slate-300 leading-relaxed">
+                <li>Engineered an adversarial fuzzer simulating steganographic token smuggling (zero-width payloads and prompt injection) against defense-grade LangGraph multi-agent RAG pipelines.</li>
+                <li>Built an air-gapped pre-inference security proxy catching 99.2% of attacks in &lt;1ms; engaged honey-prompt sandboxes to neutralize data exfiltration and enforced citation grounding under NIST AI Risk standards.</li>
+              </ul>
+            </div>
+
+            <div class="space-y-1.5 pt-2 border-t border-slate-800/60">
+              <div class="flex flex-wrap items-baseline justify-between text-xs">
+                <span class="font-bold text-white">PromptShield: Tokenization-Aware Adversarial LLM Firewall</span>
+                <span class="text-slate-400 font-mono">2026 | Python, FastAPI, scikit-learn</span>
+              </div>
+              <ul class="list-disc list-inside space-y-1 text-xs text-slate-300 leading-relaxed">
+                <li>Engineered a pre-inference security proxy intercepting prompt injection and jailbreak attacks prior to model execution; benchmarked at 0.27&ndash;1.11 ms scoring latency with zero model retraining required.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Education -->
+          <div class="space-y-2 border-t border-slate-800/60 pt-4">
+            <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">Education</h4>
+            <div class="flex flex-wrap items-baseline justify-between text-xs">
+              <div>
+                <strong class="text-white">Master of Science in Computer Science, AI/ML Concentration</strong>
+                <div class="text-slate-400">William &amp; Mary &middot; Williamsburg, VA</div>
+              </div>
+              <div class="text-right font-mono text-cyan-300">
+                <div>Expected Dec 2026</div>
+                <div class="font-bold">GPA: 3.95</div>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-baseline justify-between text-xs pt-1">
+              <div>
+                <strong class="text-white">Bachelor of Science in Computer Science</strong>
+                <div class="text-slate-400">William &amp; Mary &middot; Williamsburg, VA</div>
+              </div>
+              <div class="text-right font-mono text-slate-400">
+                <div>Graduated Dec 2024</div>
+              </div>
+            </div>
+          </div>
+
         </div>
+
+        <!-- Optional Raw PDF View (Toggleable) -->
+        <div id="raw-pdf-view" class="w-full bg-[#161B22] rounded-xl overflow-hidden border border-slate-700 shadow-2xl hidden">
+          <iframe src="assets/Paul_Mitchell_BoozAllen_AIEngineer.pdf#toolbar=1&navpanes=0" class="w-full h-[950px] border-0" title="Paul Mitchell Tailored Resume PDF"></iframe>
+        </div>
+
       </div>
 
     </section>

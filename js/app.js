@@ -458,3 +458,25 @@ if (copyEmailBtn) {
     });
   });
 }
+
+// Toggle PDF / Semantic Resume View
+const togglePdfBtn = document.getElementById('toggle-pdf-view-btn');
+const semanticResumeView = document.getElementById('semantic-resume-view');
+const rawPdfView = document.getElementById('raw-pdf-view');
+
+if (togglePdfBtn && semanticResumeView && rawPdfView) {
+  togglePdfBtn.addEventListener('click', () => {
+    sound.playClick();
+    const isRawShowing = !rawPdfView.classList.contains('hidden');
+    if (isRawShowing) {
+      rawPdfView.classList.add('hidden');
+      semanticResumeView.classList.remove('hidden');
+      togglePdfBtn.textContent = 'Switch to Raw PDF View';
+    } else {
+      rawPdfView.classList.remove('hidden');
+      semanticResumeView.classList.add('hidden');
+      togglePdfBtn.textContent = 'Switch to Document View';
+    }
+  });
+}
+
