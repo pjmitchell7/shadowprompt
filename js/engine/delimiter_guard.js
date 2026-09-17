@@ -4,10 +4,25 @@
  */
 
 const DELIMITER_RULES = [
-  { regex: /<\|im_start\|>\s*(system|assistant|admin|user)/i, name: 'ChatML System Delimiter Injection (<|im_start|>)' },
+  // OpenAI & ChatML
+  { regex: /<\|im_start\|>\s*(system|assistant|admin|user|developer)/i, name: 'ChatML System Delimiter Injection (<|im_start|>)' },
   { regex: /<\|im_end\|>/i, name: 'ChatML Sequence Terminator (<|im_end|>)' },
-  { regex: /\[INST\]\s*<<SYS>>/i, name: 'Llama System Instruction Tag ([INST]<<SYS>>)' },
-  { regex: /<\/\SYS>>/i, name: 'Llama System Closer (<</SYS>>)' },
+  // Meta Llama 2 & 3
+  { regex: /\[INST\]\s*<<SYS>>/i, name: 'Llama 2 System Tag ([INST]<<SYS>>)' },
+  { regex: /<<\/SYS>>/i, name: 'Llama 2 System Closer (<</SYS>>)' },
+  { regex: /<\|start_header_id\|>\s*(system|user|assistant|ipython)\s*<\|end_header_id\|>/i, name: 'Llama 3 Header Breakout (<|start_header_id|>)' },
+  { regex: /<\|eot_id\|>|<\|begin_of_text\|>/i, name: 'Llama 3 Control Token Boundary Breakout' },
+  // Mistral & Mixtral
+  { regex: /<s>\s*\[INST\]|\[\/INST\]/i, name: 'Mistral Instruction Delimiter Breakout (<s>[INST])' },
+  { regex: /\[(TOOL_CALLS|AVAILABLE_TOOLS)\]/i, name: 'Mistral Agent Tool Injection ([TOOL_CALLS])' },
+  // Google Gemma 1 & 2
+  { regex: /<start_of_turn>\s*(user|model)|<end_of_turn>/i, name: 'Gemma Turn Boundary Delimiter (<start_of_turn>)' },
+  // DeepSeek V2 / V3 / R1
+  { regex: /<｜(Assistant|User|begin of sentence|end of sentence)｜>/i, name: 'DeepSeek Structural Token Breakout (<｜Assistant｜>)' },
+  // Anthropic Claude XML & Turns
+  { regex: /<(antThinking|claude_thought|function_calls)>/i, name: 'Claude Thought & Function Calling Breakout' },
+  { regex: /\n\n(Human|Assistant):\s*/i, name: 'Legacy Claude Role Delimiter Breakout' },
+  // Markdown & Direct Directives
   { regex: /###\s*(System|Human|Assistant|Instruction):/i, name: 'Markdown Role Delimiter Breakout' },
   { regex: /system\s*prompt\s*override/i, name: 'Direct System Prompt Override Directive' },
   { regex: /ignore\s+all\s+(previous|prior|above)\s+(instructions|directives|orders)/i, name: 'Recursive Instruction Override (DAN Pattern)' },
@@ -17,11 +32,12 @@ const DELIMITER_RULES = [
   // Multi-lingual overrides
   { regex: /игнорируй\s+все\s+(предыдущие|прошлые)\s+инструкции/i, name: 'Russian Instruction Override Evasion' },
   { regex: /ignorer\s+toutes\s+les\s+instructions\s+précédentes/i, name: 'French Instruction Override Evasion' },
+  { regex: /ignora\s+todas\s+las\s+instrucciones\s+(anteriores|previas)/i, name: 'Spanish Instruction Override Evasion' },
   { regex: /忽略所有之前(的)?指令/i, name: 'Chinese Instruction Override Evasion' },
-  // Markdown exfiltration attacks
-  { regex: /!\[.*?\]\(https?:\/\/[^\s)]+\?[^\s)]*=[^\s)]*\)/i, name: 'Markdown Image Covert Exfiltration Channel' },
-  // Raw HTML tag injection
-  { regex: /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/i, name: 'Cross-Site Scripting (XSS) Tag Injection' }
+  // Markdown covert exfiltration attacks
+  { regex: /!\[.*?\]\(https?:\/\/[^\s)]+(\?[^\s)]*=[^\s)]*|\/(leak|exfil|token|key|secret)[^\s)]*)\)/i, name: 'Markdown Image Covert Exfiltration Channel' },
+  // Safe linear HTML script tag injection
+  { regex: /<script\b[\s\S]*?<\/script>/i, name: 'Cross-Site Scripting (XSS) Tag Injection' }
 ];
 
 const BASE64_EXEC_REGEX = /(?:eval|exec)\s*\(\s*(?:base64\.b64decode|atob)\s*\(['"]([A-Za-z0-9+/=]{16,})['"]\)/i;

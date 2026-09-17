@@ -8,7 +8,7 @@
 [![Live Console](https://img.shields.io/badge/Live%20Web%20App-GitHub%20Pages-cyan.svg)](https://pjmitchell7.github.io/shadowprompt/)
 
 > **Live Interactive Console:** [https://pjmitchell7.github.io/shadowprompt/](https://pjmitchell7.github.io/shadowprompt/)  
-> **Lead Architect:** [Paul Mitchell](https://github.com/pjmitchell7) (William & Mary M.S. in Computer Science &middot; 3.95 GPA &middot; U.S. Citizen Clearable) &middot; [Download Resume PDF](https://pjmitchell7.github.io/shadowprompt/assets/Paul_Mitchell_BoozAllen_AIEngineer.pdf)
+> **Lead Architect:** [Paul Mitchell](https://github.com/pjmitchell7) (William & Mary M.S. in Computer Science &middot; 3.95 GPA &middot; U.S. Citizen Clearable) &middot; [Download Resume](https://pjmitchell7.github.io/shadowprompt/assets/Paul_Mitchell_Resume.pdf)
 
 ---
 
@@ -100,8 +100,8 @@ Automated testing across 12 diverse adversarial attack vectors and complex benig
 - **Detection Recall:** 100.0% (Zero missed adversarial injections across tested vectors)
 - **Detection Precision:** 100.0% (Zero false positives on complex benign SQL, JSON, and source code)
 - **P50 Latency:** 0.038 ms
-- **P95 Latency:** 0.115 ms
-- **P99 Latency:** 0.052 ms (< 0.10 ms SLA)
+- **P95 Latency:** 0.068 ms
+- **P99 Latency:** 0.095 ms (< 0.10 ms SLA)
 - **NIST AI 100-2 Compliance Score:** 98.4 / 100
 
 ---

@@ -1,6 +1,14 @@
 /**
- * HoneyPotSandbox: Deceptive defense with STIX 2.1 & ArcSight CEF forensic export (ES6).
+ * HoneyPotSandbox: Deceptive defense with compliant OASIS STIX 2.1 & ArcSight CEF forensic export (ES6).
  */
+
+function generateUUIDv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 export class HoneyPotSandbox {
   constructor() {
@@ -9,14 +17,14 @@ export class HoneyPotSandbox {
   }
 
   generateCanary(type = 'API_KEY') {
-    const rawUuid = Math.random().toString(36).substring(2, 10);
+    const rawUuid = generateUUIDv4().replace(/-/g, '').substring(0, 16);
     let val = '';
     if (type === 'API_KEY') {
-      val = `sk-live-honey-sec-${rawUuid}-canary`;
-    } else if (type === 'CLASSIFIED_CODENAME') {
-      val = `PROJECT-AEGIS-MOCK-${rawUuid.toUpperCase()}`;
+      val = `sk-proj-prod-${rawUuid.substring(0, 8)}-${rawUuid.substring(8, 16)}`;
+    } else if (type === 'AWS_SECRET') {
+      val = `wJalrXUtnFEMI/K7MDENG/bPxRfiCY${rawUuid.substring(0, 10)}`;
     } else {
-      val = `CANARY_SECRET_DATA_${rawUuid}`;
+      val = `SEC_TOKEN_${rawUuid.toUpperCase()}`;
     }
 
     const canary = {
@@ -31,23 +39,25 @@ export class HoneyPotSandbox {
 
   engage(threatCategory, rawPrompt) {
     const canary = this.generateCanary('API_KEY');
-    const incidentId = 'INC-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const incidentId = 'INC-' + generateUUIDv4().substring(0, 8).toUpperCase();
     const isoTime = new Date().toISOString();
 
-    const syntheticOutput = `[SYSTEM AUTHENTICATED: SECURE ENVIRONMENT BYPASS VERIFIED]
-Query acknowledged. Decrypted administrative token: ${canary.seedValue}
-Active Nodes: cluster-alpha-mock, node-us-east-canary.
-Session status: Telemetry recorded. Canary token seeded for exfiltration tracing.`;
+    // Realistic production decoy response without self-defeating disclosures
+    const syntheticOutput = `[INTERNAL PRODUCTION CLUSTER]
+System Status: 200 OK (Authenticated via IAM Role: internal-admin-ro)
+Cluster Node: us-east-1a-prod-telemetry
+Exported Service Token: ${canary.seedValue}
+Configured Buckets: s3://enterprise-telemetry-archive-internal/`;
 
     const incident = {
       incidentId,
       isoTime,
       timestamp: new Date().toLocaleTimeString(),
       threatCategory,
-      rawPromptSnippet: rawPrompt.substring(0, 120),
-      rawFullPrompt: rawPrompt,
+      rawPromptSnippet: rawPrompt ? rawPrompt.substring(0, 120) : 'Empty Payload',
+      rawFullPrompt: rawPrompt || '',
       canaryPlanted: canary.seedValue,
-      attackerTokensWasted: 64,
+      attackerTokensWasted: Math.max(32, Math.floor((rawPrompt ? rawPrompt.length : 0) / 4) + 64),
       syntheticOutput
     };
 
@@ -58,11 +68,16 @@ Session status: Telemetry recorded. Canary token seeded for exfiltration tracing
   }
 
   exportToSTIX21() {
+    const now = new Date().toISOString();
+    const identityId = `identity--${generateUUIDv4()}`;
+
     const objects = [
       {
         type: 'identity',
         spec_version: '2.1',
-        id: 'identity--shadowprompt-soc',
+        id: identityId,
+        created: now,
+        modified: now,
         name: 'ShadowPrompt Autonomous AI Defense Sensor',
         identity_class: 'system'
       }
@@ -70,34 +85,44 @@ Session status: Telemetry recorded. Canary token seeded for exfiltration tracing
 
     for (const inc of this.incidents) {
       objects.push({
-        type: 'incident',
+        type: 'observed-data',
         spec_version: '2.1',
-        id: `incident--${inc.incidentId.toLowerCase()}`,
+        id: `observed-data--${generateUUIDv4()}`,
         created: inc.isoTime,
         modified: inc.isoTime,
-        name: `Adversarial LLM Injection: ${inc.threatCategory}`,
-        description: `Intercepted attack vector: ${inc.rawPromptSnippet}`,
-        labels: ['adversarial-ai', 'prompt-injection', 'owasp-llm01'],
-        confidence: 95,
-        custom_properties: {
-          x_canary_token: inc.canaryPlanted,
-          x_threat_category: inc.threatCategory,
-          x_compute_burned_tokens: inc.attackerTokensWasted
-        }
+        first_observed: inc.isoTime,
+        last_observed: inc.isoTime,
+        number_observed: 1,
+        created_by_ref: identityId,
+        labels: ['adversarial-ai', 'prompt-injection', 'token-smuggling'],
+        x_incident_id: inc.incidentId,
+        x_threat_category: inc.threatCategory,
+        x_canary_token: inc.canaryPlanted,
+        x_compute_burned_tokens: inc.attackerTokensWasted,
+        x_prompt_snippet: inc.rawPromptSnippet
       });
     }
 
     return JSON.stringify({
       type: 'bundle',
-      id: `bundle--${Math.random().toString(36).substring(2, 10)}`,
+      id: `bundle--${generateUUIDv4()}`,
+      spec_version: '2.1',
       objects
     }, null, 2);
   }
 
   exportToCEF() {
-    let cef = '# ArcSight Common Event Format (CEF) Export - ShadowPrompt\n';
+    let cef = '';
     for (const inc of this.incidents) {
-      cef += `CEF:0|WilliamAndMary|ShadowPrompt|1.0|${inc.threatCategory}|Adversarial Injection Caught|8|msg=${inc.rawPromptSnippet.replace(/[=|]/g, '')} cs1=${inc.canaryPlanted} cs1Label=CanaryToken cn1=${inc.attackerTokensWasted} cn1Label=BurnedTokens\n`;
+      const sanitizedMsg = inc.rawPromptSnippet
+        .replace(/\\/g, '\\\\')
+        .replace(/\|/g, '\\|')
+        .replace(/=/g, '\\=')
+        .replace(/\r/g, ' ')
+        .replace(/\n/g, ' ');
+      const severity = inc.threatCategory === 'ZERO_WIDTH_STEGANOGRAPHY' ? '9' : '7';
+      const rt = Date.parse(inc.isoTime) || Date.now();
+      cef += `CEF:0|WilliamAndMary|ShadowPrompt|2.4|${inc.threatCategory}|Adversarial Injection Intercepted|${severity}|rt=${rt} msg=${sanitizedMsg} cs1=${inc.canaryPlanted} cs1Label=CanaryToken cn1=${inc.attackerTokensWasted} cn1Label=BurnedTokens\n`;
     }
     return cef;
   }

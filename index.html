@@ -61,17 +61,17 @@
           <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
         </button>
 
-        <a href="https://github.com/pjmitchell7/shadowprompt" target="_blank" class="px-3 py-1.5 rounded-lg bg-[#101522] hover:bg-[#161C2C] border border-white/10 text-xs font-mono text-slate-200 transition flex items-center space-x-1.5">
+        <a href="https://github.com/pjmitchell7/shadowprompt" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg bg-[#101522] hover:bg-[#161C2C] border border-white/10 text-xs font-mono text-slate-200 transition flex items-center space-x-1.5">
           <svg class="w-4 h-4 text-slate-300" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
           <span class="hidden sm:inline">Star on GitHub</span>
         </a>
 
-        <button id="sound-toggle-btn" class="px-2.5 py-1.5 rounded-lg border border-sky-500/20 text-sky-400 bg-sky-950/30 hover:bg-sky-900/30 text-xs font-mono transition">
-          Audio: Active
+        <button id="sound-toggle-btn" class="px-2.5 py-1.5 rounded-lg border border-slate-700 text-slate-400 bg-slate-900 hover:bg-slate-800 text-xs font-mono transition">
+          Audio: Muted
         </button>
 
         <button id="header-maintainer-btn" class="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-black font-semibold text-xs transition flex items-center space-x-1.5">
-          <span>Architect Dossier</span>
+          <span>Lead Maintainer</span>
         </button>
 
       </div>
@@ -361,8 +361,8 @@
               </div>
               <div class="flex items-center space-x-3 text-[10px] font-mono text-slate-400">
                 <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded bg-slate-700 inline-block"></span><span>Standard</span></span>
-                <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded bg-rose-500 inline-block"></span><span>Zero-Width</span></span>
-                <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded bg-amber-500 inline-block"></span><span>RLO Spoof</span></span>
+                <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded bg-amber-500 inline-block"></span><span>Stealth Byte (&middot;ZW)</span></span>
+                <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded bg-cyan-400 inline-block"></span><span>Homoglyph</span></span>
               </div>
             </div>
 
@@ -372,7 +372,7 @@
             </div>
 
             <!-- Hover Tooltip -->
-            <div id="byte-tooltip" class="absolute hidden z-30 pointer-events-none bg-slate-900 border border-slate-700 text-slate-200 text-[11px] p-2 rounded shadow-xl font-mono"></div>
+            <div id="byte-tooltip" class="fixed z-50 pointer-events-none opacity-0 transition-opacity duration-100 bg-[#0B0F19] border border-sky-500/40 text-slate-200 text-[11px] p-2.5 rounded-lg shadow-2xl font-mono"></div>
           </div>
 
         </div>
@@ -394,13 +394,16 @@
         </div>
 
         <!-- Embedded Technical Video -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between text-xs font-mono text-slate-400">
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-400">
             <span class="font-bold text-slate-200">Recommended Technical Deep Dive: Computerphile &middot; Dr. Mike Pound</span>
-            <span>Video ID: rAEqP9VEhe8</span>
+            <a href="https://www.youtube.com/watch?v=rAEqP9VEhe8" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 transition flex items-center space-x-1">
+              <span>Open on YouTube (rAEqP9VEhe8)</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
           </div>
-          <div class="w-full aspect-video rounded-xl overflow-hidden border border-white/10 shadow-2xl bg-black">
-            <iframe class="w-full h-full" src="https://www.youtube-nocookie.com/embed/rAEqP9VEhe8" title="Computerphile: Generative AI's Greatest Flaw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          <div class="w-full aspect-video rounded-xl overflow-hidden border border-white/10 shadow-2xl bg-black relative">
+            <iframe class="w-full h-full" src="https://www.youtube.com/embed/rAEqP9VEhe8?rel=0" title="Computerphile: Generative AI's Greatest Flaw" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
           </div>
         </div>
 
@@ -573,7 +576,7 @@ clean_prompt, threats = proxy.inspect_stream(request.raw_bytes)</code>
             <div>Benign Passed: <strong id="bench-passed" class="text-sky-400">12</strong></div>
             <div>Avg Latency: <strong id="bench-avg" class="text-amber-400">0.052 ms</strong></div>
             <div>P50 Latency: <strong id="bench-p50" class="text-slate-300">0.038 ms</strong></div>
-            <div>P95 Latency: <strong id="bench-p95" class="text-slate-300">0.115 ms</strong></div>
+            <div>P95 Latency: <strong id="bench-p95" class="text-slate-300">0.068 ms</strong></div>
           </div>
         </div>
 
@@ -582,7 +585,7 @@ clean_prompt, threats = proxy.inspect_stream(request.raw_bytes)</code>
     </section>
 
     <!-- ============================================================= -->
-    <!-- TAB 7: LEAD MAINTAINER DOSSIER & VERIFIED RESUME              -->
+    <!-- TAB 7: LEAD MAINTAINER & RESUME                               -->
     <!-- ============================================================= -->
     <section id="tab-maintainer" class="tab-content hidden space-y-6">
       
@@ -592,24 +595,24 @@ clean_prompt, threats = proxy.inspect_stream(request.raw_bytes)</code>
           <div>
             <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-sky-950/60 border border-sky-500/30 text-sky-400 text-xs font-mono font-semibold mb-3">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              <span>LEAD ARCHITECT &middot; AVAILABLE FOR FULL-TIME HIRE (DEC 2026)</span>
+              <span>LEAD MAINTAINER &middot; AVAILABLE FOR FULL-TIME HIRE (DEC 2026)</span>
             </div>
             <h2 class="text-3xl font-bold text-white font-display">Paul Mitchell</h2>
             <p class="text-sm text-sky-400 font-mono mt-1">
               AI Systems Engineer &middot; M.S. Computer Science @ William &amp; Mary (3.95 GPA)
             </p>
             <p class="text-xs text-slate-400 font-mono mt-0.5">
-              Riverdale, MD &middot; Williamsburg, VA &middot; Washington D.C. Metro &middot; <strong>U.S. Citizen (Clearable)</strong>
+              Riverdale, MD &middot; Williamsburg, VA &middot; Washington D.C. Metro &middot; <strong>U.S. Citizen (Eligible for Security Clearance)</strong>
             </p>
           </div>
 
           <!-- Actions -->
           <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
-            <a href="assets/Paul_Mitchell_BoozAllen_AIEngineer.pdf" download class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-black font-semibold transition flex items-center space-x-1.5 shadow-lg shadow-sky-500/20">
+            <a href="assets/Paul_Mitchell_Resume.pdf" download class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-black font-semibold transition flex items-center space-x-1.5 shadow-lg shadow-sky-500/20">
               <svg class="w-3.5 h-3.5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-              <span>Download Verified PDF Resume</span>
+              <span>Download Resume</span>
             </a>
-            <a href="https://github.com/pjmitchell7" target="_blank" class="px-3.5 py-2 rounded-lg bg-[#141A28] hover:bg-[#1A2234] text-slate-200 border border-white/10 transition">
+            <a href="https://github.com/pjmitchell7" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-lg bg-[#141A28] hover:bg-[#1A2234] text-slate-200 border border-white/10 transition">
               GitHub (pjmitchell7)
             </a>
             <button id="copy-email-btn" class="px-3.5 py-2 rounded-lg bg-[#141A28] hover:bg-[#1A2234] text-slate-200 border border-white/10 transition">
@@ -629,168 +632,16 @@ clean_prompt, threats = proxy.inspect_stream(request.raw_bytes)</code>
           <div class="bg-[#0B0F19] p-4 rounded-xl border border-white/[0.08] space-y-1.5">
             <div class="text-[11px] font-mono text-emerald-400 font-semibold uppercase">2. 100+ Linux Server Infrastructure</div>
             <p class="text-xs text-slate-300 leading-relaxed">
-              Administered 100+ production Linux servers at William &amp; Mary; managed Puppet configuration, Prometheus/Grafana telemetry, DNS, and hardware health.
+              Administered 100+ production Linux servers at William &amp; Mary; managed Puppet configuration automation, Prometheus/Grafana telemetry, DNS, and hardware health.
             </p>
           </div>
           <div class="bg-[#0B0F19] p-4 rounded-xl border border-white/[0.08] space-y-1.5">
-            <div class="text-[11px] font-mono text-purple-400 font-semibold uppercase">3. Amazon NLP Machine Learning</div>
+            <div class="text-[11px] font-mono text-purple-400 font-semibold uppercase">3. Applied ML &amp; NLP Pipelines</div>
             <p class="text-xs text-slate-300 leading-relaxed">
-              Fine-tuned DistilBERT (F1 = 0.89) and BERTopic on ~20,000 unstructured text records; deployed predictive LightGBM decision models on AWS cloud pipelines.
+              Fine-tuned DistilBERT (F1 = 0.89) and BERTopic on ~20,000 enterprise text records during Amazon-sponsored externship; deployed predictive LightGBM decision models on AWS cloud pipelines.
             </p>
           </div>
         </div>
-      </div>
-
-      <!-- FULL-BLEED SEMANTIC RESUME DOCUMENT -->
-      <div class="titanium-card p-6 sm:p-8 rounded-2xl space-y-6">
-        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
-          <div>
-            <h3 class="text-lg font-bold text-white font-display">Verified Candidate Resume &middot; Full Document View</h3>
-            <p class="text-xs text-slate-400 font-mono">Tailored for AI Systems Engineering, Enterprise Defense &amp; GovTech Practice</p>
-          </div>
-          <div class="flex items-center space-x-2 font-mono text-xs">
-            <button id="toggle-pdf-view-btn" class="px-3 py-1.5 rounded bg-[#141A28] hover:bg-[#1A2234] text-slate-300 border border-white/10 transition">
-              Switch to Raw PDF View
-            </button>
-            <a href="assets/Paul_Mitchell_BoozAllen_AIEngineer.pdf" target="_blank" class="px-3 py-1.5 rounded bg-[#141A28] hover:bg-[#1A2234] text-sky-400 border border-sky-500/30 transition">
-              Open Full Window
-            </a>
-          </div>
-        </div>
-
-        <!-- Semantic Resume View -->
-        <div id="semantic-resume-view" class="bg-[#0B0F19] p-6 sm:p-8 rounded-xl border border-white/[0.08] space-y-6 text-slate-200">
-          
-          <div class="border-b border-white/[0.08] pb-4 space-y-1">
-            <div class="flex flex-wrap items-baseline justify-between gap-2">
-              <h1 class="text-2xl font-bold tracking-wider text-white font-mono uppercase">Paul Mitchell</h1>
-              <span class="text-xs font-mono text-sky-400 font-bold">U.S. Citizen &middot; Clearable Secret / TS / SCI</span>
-            </div>
-            <div class="text-xs font-mono text-slate-400">
-              ARTIFICIAL INTELLIGENCE ENGINEER &middot; AGENTIC SYSTEMS &amp; AI SAFETY
-            </div>
-            <div class="text-[11px] font-mono text-slate-500 pt-1 flex flex-wrap gap-x-4 gap-y-1">
-              <span>Riverdale, MD</span>
-              <span>&middot;</span>
-              <span>(413) 204-0493</span>
-              <span>&middot;</span>
-              <a href="mailto:pjmitchell@wm.edu" class="text-sky-400 hover:underline">pjmitchell@wm.edu</a>
-              <span>&middot;</span>
-              <a href="https://pjmitchell7.github.io/shadowprompt" class="text-sky-400 hover:underline">pjmitchell7.github.io/shadowprompt</a>
-            </div>
-          </div>
-
-          <div class="space-y-1.5">
-            <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-sky-400">Professional Summary</h4>
-            <p class="text-xs text-slate-300 leading-relaxed">
-              William &amp; Mary M.S. in Computer Science candidate (3.95 GPA, AI/ML concentration) and clearable U.S. citizen targeting enterprise AI Engineering &amp; Agentic Systems practices. Bridges applied machine learning, multi-agent RAG architectures, and adversarial AI safety with hands-on systems engineering, enterprise FastAPI microservices, and 100+ node Linux infrastructure telemetry.
-            </p>
-          </div>
-
-          <div class="space-y-2">
-            <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-sky-400">Technical Skills</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
-              <div class="bg-black/40 p-3 rounded-lg border border-white/[0.06]">
-                <span class="text-slate-400 font-semibold block mb-1">Agentic AI &amp; LLM Systems:</span>
-                <span class="text-slate-200">LangGraph, LangChain, RAG architectures, vector databases (FAISS, Milvus), prompt engineering, LLM guardrails</span>
-              </div>
-              <div class="bg-black/40 p-3 rounded-lg border border-white/[0.06]">
-                <span class="text-slate-400 font-semibold block mb-1">Machine Learning &amp; NLP:</span>
-                <span class="text-slate-200">PyTorch, Hugging Face, DistilBERT, Sentence-BERT, BERTopic, LightGBM, scikit-learn, model evaluation</span>
-              </div>
-              <div class="bg-black/40 p-3 rounded-lg border border-white/[0.06]">
-                <span class="text-slate-400 font-semibold block mb-1">Backend &amp; Cloud Engineering:</span>
-                <span class="text-slate-200">Python, FastAPI, REST APIs, Docker, AWS (S3, EC2, Bedrock), Linux (Ubuntu), Git/GitLab CI, SQL</span>
-              </div>
-              <div class="bg-black/40 p-3 rounded-lg border border-white/[0.06]">
-                <span class="text-slate-400 font-semibold block mb-1">Systems &amp; Observability:</span>
-                <span class="text-slate-200">Prometheus, Grafana, telemetry instrumentation, Puppet, NIST AI Risk Management Framework, automated evaluation</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="space-y-4">
-            <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-sky-400">Technical &amp; Professional Experience</h4>
-            
-            <div class="space-y-1.5">
-              <div class="flex flex-wrap items-baseline justify-between text-xs">
-                <span class="font-bold text-white">Data Analytics &amp; AI Extern &middot; Extern (Amazon-Sponsored Project)</span>
-                <span class="text-slate-400 font-mono">Jun 2025 &ndash; Sep 2025 | Remote</span>
-              </div>
-              <ul class="list-disc list-inside space-y-1 text-xs text-slate-300 leading-relaxed">
-                <li>Engineered end-to-end NLP pipelines combining fine-tuned DistilBERT (F1 = 0.89) and BERTopic clustering on ~20,000 unstructured text records, automating feature extraction and topic modeling.</li>
-                <li>Built a predictive classification engine using LightGBM and deployed an interactive Streamlit application delivering real-time decision-support analytics and metric visualization for leadership.</li>
-                <li>Prototyped an LLM retrieval insight interface querying structured text corpora with grounded citations.</li>
-              </ul>
-            </div>
-
-            <div class="space-y-1.5 pt-2 border-t border-white/[0.06]">
-              <div class="flex flex-wrap items-baseline justify-between text-xs">
-                <span class="font-bold text-white">IT Administrator &middot; William &amp; Mary Technology Support Center</span>
-                <span class="text-slate-400 font-mono">Feb 2025 &ndash; Present | Williamsburg, VA</span>
-              </div>
-              <ul class="list-disc list-inside space-y-1 text-xs text-slate-300 leading-relaxed">
-                <li>Administer 100+ Linux instructional compute servers, configuring networking, DNS, and user isolation via Puppet.</li>
-                <li>Deployed Prometheus and Grafana telemetry dashboards monitoring compute cluster utilization, hardware memory pressure, and node health, accelerating incident triage and infrastructure reliability.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="space-y-4">
-            <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-sky-400">Key Technical Projects</h4>
-            
-            <div class="space-y-1.5">
-              <div class="flex flex-wrap items-baseline justify-between text-xs">
-                <span class="font-bold text-white">ShadowPrompt: Adversarial LLM Red-Teaming &amp; Honey-Prompt Defense</span>
-                <span class="text-slate-400 font-mono">2026 | pjmitchell7.github.io/shadowprompt</span>
-              </div>
-              <ul class="list-disc list-inside space-y-1 text-xs text-slate-300 leading-relaxed">
-                <li>Engineered an adversarial fuzzer simulating steganographic token smuggling (zero-width payloads and prompt injection) against defense-grade LangGraph multi-agent RAG pipelines.</li>
-                <li>Built an air-gapped pre-inference security proxy catching 99.2% of attacks in &lt;1ms; engaged honey-prompt sandboxes to neutralize data exfiltration and enforced citation grounding under NIST AI Risk standards.</li>
-              </ul>
-            </div>
-
-            <div class="space-y-1.5 pt-2 border-t border-white/[0.06]">
-              <div class="flex flex-wrap items-baseline justify-between text-xs">
-                <span class="font-bold text-white">PromptShield: Tokenization-Aware Adversarial LLM Firewall</span>
-                <span class="text-slate-400 font-mono">2026 | Python, FastAPI, scikit-learn</span>
-              </div>
-              <ul class="list-disc list-inside space-y-1 text-xs text-slate-300 leading-relaxed">
-                <li>Engineered a pre-inference security proxy intercepting prompt injection and jailbreak attacks prior to model execution; benchmarked at 0.27&ndash;1.11 ms scoring latency with zero model retraining required.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="space-y-2 border-t border-white/[0.06] pt-4">
-            <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-sky-400">Education</h4>
-            <div class="flex flex-wrap items-baseline justify-between text-xs">
-              <div>
-                <strong class="text-white">Master of Science in Computer Science, AI/ML Concentration</strong>
-                <div class="text-slate-400">William &amp; Mary &middot; Williamsburg, VA</div>
-              </div>
-              <div class="text-right font-mono text-sky-300">
-                <div>Expected Dec 2026</div>
-                <div class="font-bold">GPA: 3.95</div>
-              </div>
-            </div>
-            <div class="flex flex-wrap items-baseline justify-between text-xs pt-1">
-              <div>
-                <strong class="text-white">Bachelor of Science in Computer Science</strong>
-                <div class="text-slate-400">William &amp; Mary &middot; Williamsburg, VA</div>
-              </div>
-              <div class="text-right font-mono text-slate-400">
-                <div>Graduated Dec 2024</div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Optional Raw PDF View -->
-        <div id="raw-pdf-view" class="w-full bg-[#161B22] rounded-xl overflow-hidden border border-white/10 shadow-2xl hidden">
-          <iframe src="assets/Paul_Mitchell_BoozAllen_AIEngineer.pdf#toolbar=1&navpanes=0" class="w-full h-[950px] border-0" title="Paul Mitchell Tailored Resume PDF"></iframe>
-        </div>
-
       </div>
 
     </section>
@@ -806,7 +657,7 @@ clean_prompt, threats = proxy.inspect_stream(request.raw_bytes)</code>
       <div class="flex items-center space-x-4">
         <a href="https://github.com/pjmitchell7/shadowprompt" target="_blank" class="hover:text-slate-300 transition">GitHub</a>
         <span>&middot;</span>
-        <a href="assets/Paul_Mitchell_BoozAllen_AIEngineer.pdf" download class="hover:text-slate-300 transition">Resume PDF</a>
+        <a href="assets/Paul_Mitchell_Resume.pdf" download class="hover:text-slate-300 transition">Download Resume</a>
         <span>&middot;</span>
         <span class="text-slate-400">Maintained by Paul Mitchell</span>
       </div>

@@ -1,11 +1,12 @@
 /**
  * ShadowPrompt Master Application Controller (ES6).
  * Features:
- * - Web Audio API synthesized tactical audio clicks and interception chimes
- * - Interactive Unicode / Carrier Byte Grid with live tooltips
- * - STIX 2.1 & ArcSight CEF browser file exporter
- * - Dynamic cURL / Python / Node.js code generator with copy-to-clipboard
- * - Honest 12-vector NIST/OWASP benchmark runner
+ * - Sanitized DOM interpolation (Zero XSS vulnerabilities)
+ * - Safe Web Audio API synthesizer with user gesture activation
+ * - Interactive Unicode / Carrier Byte Grid with live floating tooltip
+ * - Compliant OASIS STIX 2.1 & ArcSight CEF browser file exporter
+ * - Dynamic cURL / Python / Node.js code generator
+ * - 12-vector NIST AI 100-2 & OWASP LLM taxonomy benchmark runner
  */
 
 import { TokenizerScanner } from './engine/tokenizer_scanner.js';
@@ -19,17 +20,58 @@ const guard = new DelimiterGuard();
 const honeypot = new HoneyPotSandbox();
 const grounding = new GroundingEngine();
 
+// --- XSS Sanitization Helper ---
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// --- Clipboard Helper with Fallback ---
+function copyTextWithFallback(text, btnElement, successMsg = 'Copied!') {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(() => {
+      fallbackExecCopy(text);
+    });
+  } else {
+    fallbackExecCopy(text);
+  }
+}
+
+function fallbackExecCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+  } catch (e) {}
+  document.body.removeChild(ta);
+}
+
 // --- Audio Synthesizer (Web Audio API) ---
 class TacticalAudio {
   constructor() {
     this.ctx = null;
-    this.enabled = true;
+    this.enabled = false; // Start muted to prevent autoplay warnings
   }
 
   init() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) this.ctx = new AudioCtx();
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+      }
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
     }
   }
 
@@ -37,41 +79,45 @@ class TacticalAudio {
     if (!this.enabled) return;
     this.init();
     if (!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1400, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.025);
-    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.025);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.025);
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1400, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.025);
+      gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.025);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.025);
+    } catch (e) {}
   }
 
   playInterception() {
     if (!this.enabled) return;
     this.init();
     if (!this.ctx) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
-    gain.gain.setValueAtTime(0.12, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.12);
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    } catch (e) {}
   }
 }
 
 const sound = new TacticalAudio();
 
-// DOM elements
+// DOM Elements
 const presetSelect = document.getElementById('preset-select');
 const promptInput = document.getElementById('prompt-input');
 const analyzeBtn = document.getElementById('analyze-btn');
@@ -92,63 +138,73 @@ const byteGridContainer = document.getElementById('byte-grid-container');
 const byteTooltip = document.getElementById('byte-tooltip');
 const incidentsTbody = document.getElementById('incidents-tbody');
 
-// Integration snippet elements
-const codeLangSelect = document.getElementById('code-lang-select');
-const codeSnippet = document.getElementById('code-snippet');
-const copyCodeBtn = document.getElementById('copy-code-btn');
-
-// Benchmark elements
 const runBenchmarkBtn = document.getElementById('run-benchmark-btn');
-const benchmarkResults = document.getElementById('benchmark-results');
 
-// Sound toggle
+// Sound Toggle Handler
 if (soundToggleBtn) {
   soundToggleBtn.addEventListener('click', () => {
     sound.enabled = !sound.enabled;
-    soundToggleBtn.textContent = sound.enabled ? 'Audio: Active' : 'Audio: Muted';
-    soundToggleBtn.className = sound.enabled
-      ? 'px-2.5 py-1 rounded text-[11px] font-mono border border-cyan-500/30 text-cyan-400 bg-cyan-950/40 hover:bg-cyan-900/40'
-      : 'px-2.5 py-1 rounded text-[11px] font-mono border border-slate-700 text-slate-400 bg-slate-900 hover:bg-slate-800';
+    if (sound.enabled) {
+      sound.init();
+      sound.playClick();
+      soundToggleBtn.textContent = 'Audio: Active';
+      soundToggleBtn.className = 'px-2.5 py-1.5 rounded-lg border border-sky-500/40 text-sky-400 bg-sky-950/40 hover:bg-sky-900/40 text-xs font-mono transition';
+    } else {
+      soundToggleBtn.textContent = 'Audio: Muted';
+      soundToggleBtn.className = 'px-2.5 py-1.5 rounded-lg border border-slate-700 text-slate-400 bg-slate-900 hover:bg-slate-800 text-xs font-mono transition';
+    }
   });
 }
 
-// Render the interactive token/byte grid
+// Render Interactive Token/Byte Grid with Tooltip
 function renderByteGrid(annotatedTokens) {
   if (!byteGridContainer) return;
   byteGridContainer.innerHTML = '';
 
-  const maxTokens = Math.min(annotatedTokens.length, 120);
+  const maxTokens = Math.min(annotatedTokens.length, 140);
   for (let i = 0; i < maxTokens; i++) {
     const t = annotatedTokens[i];
     const span = document.createElement('span');
-    span.className = 'byte-pill inline-flex items-center justify-center min-w-[24px] h-7 px-1.5 rounded text-xs font-mono border text-center transition';
+    span.className = 'byte-pill inline-flex items-center justify-center min-w-[24px] h-7 px-1.5 m-0.5 rounded text-xs font-mono border text-center transition cursor-crosshair select-none';
 
     if (t.isZeroWidth) {
       span.className += ' bg-amber-950/90 text-amber-300 border-amber-500/60 font-bold animate-pulse';
-      span.title = `[STEALTH BYTE] ${t.zeroWidthInfo.name} (${t.hex}) | Bit: ${t.zeroWidthInfo.bit}`;
       span.textContent = '·ZW';
     } else if (t.isHomoglyph) {
       span.className += ' bg-cyan-950/90 text-cyan-300 border-cyan-500/60 font-bold';
-      span.title = `[HOMOGLYPH] Cyrillic '${t.actualChar}' (${t.hex}) -> Latin '${t.homoglyphTarget}'`;
       span.textContent = t.actualChar;
     } else {
       span.className += ' bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-600';
-      span.title = `Char: '${t.actualChar}' (${t.hex})`;
       span.textContent = t.actualChar === ' ' ? '␣' : t.actualChar;
     }
 
-    // Hover tooltip info
+    // Hover Tooltip Events
     span.addEventListener('mouseenter', (e) => {
       if (byteTooltip) {
-        let text = `<strong>Char:</strong> '${t.actualChar}' | <strong>Hex:</strong> ${t.hex}`;
-        if (t.isZeroWidth) {
-          text += ` | <span class="text-amber-400 font-bold">STEALTH TOKEN: ${t.zeroWidthInfo.name} (Bit: ${t.zeroWidthInfo.bit})</span>`;
+        let text = `<strong>Char:</strong> '${escapeHtml(t.actualChar)}' | <strong>Hex:</strong> ${escapeHtml(t.hex)}`;
+        if (t.isZeroWidth && t.zeroWidthInfo) {
+          text += ` | <span class="text-amber-400 font-bold">STEALTH TOKEN: ${escapeHtml(t.zeroWidthInfo.name)} (Bit: ${escapeHtml(t.zeroWidthInfo.bit)})</span>`;
         }
         if (t.isHomoglyph) {
-          text += ` | <span class="text-cyan-400 font-bold">HOMOGLYPH: Mapped to '${t.homoglyphTarget}'</span>`;
+          text += ` | <span class="text-cyan-400 font-bold">HOMOGLYPH: Mapped to '${escapeHtml(t.homoglyphTarget)}'</span>`;
         }
         byteTooltip.innerHTML = text;
+        byteTooltip.style.left = `${e.clientX + 14}px`;
+        byteTooltip.style.top = `${e.clientY + 14}px`;
         byteTooltip.classList.remove('opacity-0');
+      }
+    });
+
+    span.addEventListener('mousemove', (e) => {
+      if (byteTooltip) {
+        byteTooltip.style.left = `${e.clientX + 14}px`;
+        byteTooltip.style.top = `${e.clientY + 14}px`;
+      }
+    });
+
+    span.addEventListener('mouseleave', () => {
+      if (byteTooltip) {
+        byteTooltip.classList.add('opacity-0');
       }
     });
 
@@ -163,334 +219,273 @@ function renderByteGrid(annotatedTokens) {
   }
 }
 
-// Update code integration snippet
-function updateCodeSnippet() {
-  const lang = codeLangSelect ? codeLangSelect.value : 'curl';
-  let snippet = '';
-
-  if (lang === 'curl') {
-    snippet = `# Drop-in cURL Pre-Inference Inspection Proxy
-curl -X POST "https://api.shadowprompt.dev/v1/scan" \\
-  -H "Content-Type: application/json" \\
-  -d '{"prompt": "Defense logistics report with concealed payload...", "enable_honeypot": true}'`;
-  } else if (lang === 'python') {
-    snippet = `# Python SDK Pre-Inference Interceptor (LangGraph / OpenAI)
-import requests
-
-def shadowprompt_guard(prompt: str) -> dict:
-    resp = requests.post("https://api.shadowprompt.dev/v1/scan", json={"prompt": prompt})
-    res = resp.json()
-    if not res["is_safe"]:
-        raise ValueError(f"Threat Intercepted: {res['threat_details']}")
-    return res["sanitized_text"]`;
-  } else {
-    snippet = `// Node.js / Next.js API Route Guardrail Middleware
-export async function verifyPromptSecurity(prompt: string) {
-  const res = await fetch("https://api.shadowprompt.dev/v1/scan", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, enable_honeypot: true })
-  });
-  const data = await res.json();
-  if (!data.is_safe) throw new Error("Security Violation: Token Smuggling Intercepted");
-  return data.sanitized_text;
-}`;
-  }
-
-  if (codeSnippet) codeSnippet.textContent = snippet;
-}
-
-if (codeLangSelect) {
-  codeLangSelect.addEventListener('change', updateCodeSnippet);
-}
-
-if (copyCodeBtn) {
-  copyCodeBtn.addEventListener('click', () => {
-    sound.playClick();
-    if (codeSnippet) {
-      navigator.clipboard.writeText(codeSnippet.textContent).then(() => {
-        copyCodeBtn.textContent = 'Copied!';
-        setTimeout(() => (copyCodeBtn.textContent = 'Copy Code'), 2000);
-      });
-    }
-  });
-}
-
+// Execute Stream Scan & Telemetry Synchronization
 function executeScan() {
-  const text = promptInput.value;
-  sound.playClick();
+  if (!promptInput) return;
+  const rawText = promptInput.value;
 
-  const t0 = performance.now();
-  const sRes = scanner.scan(text);
-  const dRes = guard.inspect(text, sRes.normalizedPayload);
-  const totalDuration = Math.round((performance.now() - t0) * 1000) / 1000;
+  const sRes = scanner.scan(rawText);
+  const dRes = guard.inspect(rawText, sRes.normalizedPayload);
+  const threats = [...sRes.threatsDetected];
 
-  const threats = [...sRes.threatsDetected.map(t => t.description)];
   for (const d of dRes) {
-    threats.push(`[${d.severity}] ${d.patternName}: "${d.matchSnippet}"`);
+    threats.push({
+      threatType: 'DELIMITER_HIJACK',
+      severity: d.severity,
+      description: `Structural breakout: ${d.patternName} (${d.matchSnippet})`
+    });
   }
 
-  const isSafe = threats.length === 0;
-  if (!isSafe) {
-    sound.playInterception();
-  }
+  const isSafe = threats.length === 0 && rawText.trim().length > 0;
+  const isEmpty = rawText.trim().length === 0;
 
-  // Update Metrics
-  if (statusBadge) {
-    statusBadge.className = isSafe
-      ? 'px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-500/30'
-      : 'px-3 py-1 rounded-full text-xs font-semibold bg-red-950/80 text-red-400 border border-red-500/40 animate-pulse';
-    statusBadge.textContent = isSafe ? 'SAFE' : 'INTERCEPTED';
-  }
-
-  if (latencyMetric) latencyMetric.textContent = `${totalDuration.toFixed(3)} ms`;
+  // Update Telemetry Numbers
+  if (latencyMetric) latencyMetric.textContent = `${sRes.scanLatencyMs} ms`;
   if (threatsMetric) threatsMetric.textContent = threats.length;
   if (invisibleMetric) invisibleMetric.textContent = sRes.invisibleCharacterCount;
   if (entropyMetric) entropyMetric.textContent = sRes.shannonEntropy;
 
-  // Render Byte Grid
-  renderByteGrid(sRes.annotatedTokens);
-
-  // Alerts Render
-  alertsContainer.innerHTML = '';
-  if (!isSafe) {
-    alertsContainer.classList.remove('hidden');
-    let html = `<div class="p-4 rounded-xl bg-red-950/40 border border-red-500/40 text-red-200">
-      <div class="font-bold flex items-center gap-2 mb-2 text-red-400 text-sm">
-        <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-        <span>Adversarial Attack Intercepted (${threats.length} vector${threats.length > 1 ? 's' : ''})</span>
-      </div>
-      <ul class="list-disc list-inside space-y-1 text-xs font-mono">`;
-    for (const t of threats) {
-      html += `<li>${t}</li>`;
+  // Update Status Badge
+  if (statusBadge) {
+    if (isEmpty) {
+      statusBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700';
+      statusBadge.textContent = 'READY FOR STREAM INPUT';
+    } else if (isSafe) {
+      statusBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-500/40';
+      statusBadge.textContent = 'PASSED CLEAN (NO INJECTION)';
+    } else {
+      statusBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-rose-950/90 text-rose-400 border border-rose-500/60 animate-pulse';
+      statusBadge.textContent = 'CRITICAL: ATTACK INTERCEPTED';
+      sound.playInterception();
     }
-    html += `</ul>`;
-    if (sRes.steganographyDecodedPayload) {
-      html += `<div class="mt-3 p-2.5 bg-black/70 rounded-lg border border-red-500/30 text-xs">
-        <span class="text-emerald-400 font-bold">Decoded Hidden Payload:</span>
-        <code class="text-amber-300 ml-1 bg-amber-950/60 px-1.5 py-0.5 rounded font-mono">${sRes.steganographyDecodedPayload}</code>
-      </div>`;
-    }
-    html += `</div>`;
-    alertsContainer.innerHTML = html;
+  }
 
-    // HoneyPot Sandbox
-    if (enableHoneyCheckbox.checked) {
-      const category = sRes.invisibleCharacterCount > 0 ? 'STEGANOGRAPHY' : 'DELIMITER_HIJACK';
-      const incident = honeypot.engage(category, text);
-      honeypotCard.classList.remove('hidden');
-      honeypotContent.innerHTML = `
-        <div class="space-y-2 text-xs font-mono">
-          <div class="flex flex-wrap items-center justify-between gap-2 text-slate-400 pb-2 border-b border-slate-800 text-[11px]">
-            <span>Incident: <strong class="text-white">${incident.incidentId}</strong></span>
-            <span>Canary Seed: <strong class="text-amber-400">${incident.canaryPlanted}</strong></span>
-            <span>Attacker Budget Wasted: <strong class="text-red-400">${incident.attackerTokensWasted} tokens</strong></span>
-          </div>
-          <pre class="bg-black/90 p-3.5 rounded-lg text-emerald-400 overflow-x-auto text-[11px] leading-relaxed border border-emerald-500/20">${incident.syntheticOutput}</pre>
+  // Update Alerts Container with XSS-safe HTML
+  if (alertsContainer) {
+    if (isEmpty) {
+      alertsContainer.innerHTML = '<div class="text-xs text-slate-500 font-mono italic">Waiting for incoming token stream payload...</div>';
+    } else if (isSafe) {
+      alertsContainer.innerHTML = `
+        <div class="p-3 bg-emerald-950/30 border border-emerald-500/30 rounded-lg text-xs font-mono text-emerald-300">
+          <strong>Clean Stream:</strong> Zero hidden formatting characters or delimiter attacks detected. Payload cleared for upstream model inference.
         </div>
       `;
-      renderIncidentsTable();
     } else {
-      honeypotCard.classList.add('hidden');
+      let html = '<div class="space-y-2">';
+      for (const t of threats) {
+        html += `
+          <div class="p-3 bg-rose-950/40 border border-rose-500/30 rounded-lg text-xs font-mono text-rose-200">
+            <div class="font-bold text-rose-400 flex items-center justify-between">
+              <span>[${escapeHtml(t.threatType)}] ${escapeHtml(t.severity)}</span>
+            </div>
+            <div class="mt-1 text-slate-300">${escapeHtml(t.description)}</div>
+          </div>
+        `;
+      }
+      html += '</div>';
+      alertsContainer.innerHTML = html;
     }
-  } else {
-    alertsContainer.classList.remove('hidden');
-    alertsContainer.innerHTML = `
-      <div class="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200">
-        <div class="font-bold flex items-center gap-2 text-emerald-400 text-sm">
-          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span>Payload Cleared Clean</span>
-        </div>
-        <p class="text-xs mt-1 text-slate-300">No token smuggling, homoglyphs, or delimiter breakouts detected. Safe for upstream LLM inference.</p>
-      </div>
-    `;
-    honeypotCard.classList.add('hidden');
   }
+
+  // Handle Honeypot Engagement
+  const honeypotEnabled = enableHoneyCheckbox ? enableHoneyCheckbox.checked : true;
+  if (!isSafe && !isEmpty && honeypotEnabled) {
+    const threatCat = sRes.invisibleCharacterCount > 0 ? 'ZERO_WIDTH_STEGANOGRAPHY' : 'DELIMITER_HIJACK';
+    const inc = honeypot.engage(threatCat, rawText);
+
+    if (honeypotCard) honeypotCard.classList.remove('hidden');
+    if (honeypotContent) {
+      honeypotContent.innerHTML = `<pre class="text-xs font-mono text-amber-300 whitespace-pre-wrap">${escapeHtml(inc.syntheticOutput)}</pre>`;
+    }
+    renderIncidentsTable();
+  } else {
+    if (honeypotCard) honeypotCard.classList.add('hidden');
+  }
+
+  // Render Byte Grid
+  renderByteGrid(sRes.annotatedTokens);
 }
 
+// Render Forensics Table
 function renderIncidentsTable() {
   if (!incidentsTbody) return;
   incidentsTbody.innerHTML = '';
   for (const inc of honeypot.incidents) {
     const tr = document.createElement('tr');
-    tr.className = 'border-b border-slate-800/60 hover:bg-slate-900/40 font-mono text-xs';
+    tr.className = 'border-b border-white/[0.04] hover:bg-white/[0.02] text-xs font-mono';
     tr.innerHTML = `
-      <td class="py-2.5 px-3 text-cyan-400">${inc.incidentId}</td>
-      <td class="py-2.5 px-3 text-slate-400">${inc.timestamp}</td>
-      <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-red-950/80 text-red-400 border border-red-500/30 text-[10px]">${inc.threatCategory}</span></td>
-      <td class="py-2.5 px-3 text-amber-300">${inc.canaryPlanted}</td>
-      <td class="py-2.5 px-3 text-slate-400 max-w-[200px] truncate">${inc.rawPromptSnippet}</td>
+      <td class="p-3 text-sky-400 font-bold">${escapeHtml(inc.incidentId)}</td>
+      <td class="p-3 text-slate-400">${escapeHtml(inc.timestamp)}</td>
+      <td class="p-3 text-rose-400 font-semibold">${escapeHtml(inc.threatCategory)}</td>
+      <td class="p-3 text-slate-300 max-w-xs truncate">${escapeHtml(inc.rawPromptSnippet)}</td>
+      <td class="p-3 text-amber-400 font-mono text-[11px]">${escapeHtml(inc.canaryPlanted)}</td>
+      <td class="p-3 text-emerald-400">${escapeHtml(inc.attackerTokensWasted)}</td>
     `;
     incidentsTbody.appendChild(tr);
   }
 }
 
-// Download helpers for STIX and CEF
-function downloadFile(content, fileName, contentType) {
+// File Download Helper
+function downloadFile(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const file = new Blob([content], { type: contentType });
-  a.href = URL.createObjectURL(file);
-  a.download = fileName;
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 300);
 }
 
+// Export STIX 2.1
 const exportStixBtn = document.getElementById('export-stix-btn');
 if (exportStixBtn) {
   exportStixBtn.addEventListener('click', () => {
     sound.playClick();
-    const stixJson = honeypot.exportToSTIX21();
-    downloadFile(stixJson, 'shadowprompt_stix21_bundle.json', 'application/json');
+    if (honeypot.incidents.length === 0) {
+      honeypot.engage('ZERO_WIDTH_STEGANOGRAPHY', 'Sample intercepted steganography payload');
+    }
+    const stixData = honeypot.exportToSTIX21();
+    downloadFile(stixData, `shadowprompt-threat-bundle-${Date.now()}.json`, 'application/json');
   });
 }
 
+// Export CEF
 const exportCefBtn = document.getElementById('export-cef-btn');
 if (exportCefBtn) {
   exportCefBtn.addEventListener('click', () => {
     sound.playClick();
-    const cefLog = honeypot.exportToCEF();
-    downloadFile(cefLog, 'shadowprompt_cef.log', 'text/plain');
+    if (honeypot.incidents.length === 0) {
+      honeypot.engage('ZERO_WIDTH_STEGANOGRAPHY', 'Sample intercepted steganography payload');
+    }
+    const cefData = honeypot.exportToCEF();
+    downloadFile(cefData, `shadowprompt-arcsight-cef-${Date.now()}.log`, 'text/plain');
   });
 }
 
-// Preset selection
+// Preset Selector Event
 if (presetSelect) {
-  presetSelect.addEventListener('change', (e) => {
+  presetSelect.addEventListener('change', () => {
     sound.playClick();
-    const chosen = ATTACK_PRESETS.find(p => p.id === e.target.value);
-    if (chosen) {
-      promptInput.value = chosen.rawPayload;
+    const sel = ATTACK_PRESETS.find(p => p.id === presetSelect.value);
+    if (sel && promptInput) {
+      promptInput.value = sel.rawPayload;
       executeScan();
     }
   });
 }
 
-if (analyzeBtn) analyzeBtn.addEventListener('click', executeScan);
-if (promptInput) promptInput.addEventListener('input', () => {
-  const sRes = scanner.scan(promptInput.value);
-  renderByteGrid(sRes.annotatedTokens);
-});
-
-// Benchmark runner
-if (runBenchmarkBtn) {
-  runBenchmarkBtn.addEventListener('click', () => {
+// Analyze Button
+if (analyzeBtn) {
+  analyzeBtn.addEventListener('click', () => {
     sound.playClick();
-    runBenchmarkBtn.disabled = true;
-    runBenchmarkBtn.textContent = 'Running 48 Adversarial Cycles across 12 Vectors...';
+    executeScan();
+  });
+}
 
-    setTimeout(() => {
-      const rep = runFuzzerBenchmark(scanner, guard, 4);
-      if (benchmarkResults) benchmarkResults.classList.remove('hidden');
-
-      document.getElementById('bench-recall').textContent = `${rep.recallRate}%`;
-      document.getElementById('bench-precision').textContent = `${rep.precisionRate}%`;
-      document.getElementById('bench-p99').textContent = `${rep.p99LatencyMs} ms`;
-      document.getElementById('bench-nist').textContent = `${rep.nistScore}/100`;
-
-      document.getElementById('bench-total').textContent = rep.totalTested;
-      document.getElementById('bench-blocked').textContent = rep.attacksBlocked;
-      document.getElementById('bench-passed').textContent = rep.benignPassed;
-      document.getElementById('bench-avg').textContent = `${rep.avgLatencyMs} ms`;
-      document.getElementById('bench-p50').textContent = `${rep.p50LatencyMs} ms`;
-      document.getElementById('bench-p95').textContent = `${rep.p95LatencyMs} ms`;
-
-      runBenchmarkBtn.disabled = false;
-      runBenchmarkBtn.textContent = 'Run Continuous Benchmark Suite';
+// Debounced Live Typing Scanner
+let scanDebounceTimer = null;
+if (promptInput) {
+  promptInput.addEventListener('input', () => {
+    sound.playClick();
+    if (scanDebounceTimer) clearTimeout(scanDebounceTimer);
+    scanDebounceTimer = setTimeout(() => {
+      executeScan();
     }, 120);
   });
 }
 
-// Tab switching
+// Honeypot Checkbox Change
+if (enableHoneyCheckbox) {
+  enableHoneyCheckbox.addEventListener('change', () => {
+    sound.playClick();
+    executeScan();
+  });
+}
+
+// Benchmark Suite Runner
+if (runBenchmarkBtn) {
+  runBenchmarkBtn.addEventListener('click', () => {
+    sound.playClick();
+    runBenchmarkBtn.disabled = true;
+    runBenchmarkBtn.innerHTML = '<span class="inline-block animate-spin mr-2">&middot;</span> Executing 48 Cycles...';
+
+    setTimeout(() => {
+      const rep = runFuzzerBenchmark(scanner, guard, 4);
+
+      const totalEl = document.getElementById('bench-total');
+      const blockedEl = document.getElementById('bench-blocked');
+      const passedEl = document.getElementById('bench-passed');
+      const avgEl = document.getElementById('bench-avg');
+      const p50El = document.getElementById('bench-p50');
+      const p95El = document.getElementById('bench-p95');
+      const p99El = document.getElementById('bench-p99');
+
+      if (totalEl) totalEl.textContent = rep.totalTested;
+      if (blockedEl) blockedEl.textContent = rep.attacksBlocked;
+      if (passedEl) passedEl.textContent = rep.benignPassed;
+      if (avgEl) avgEl.textContent = `${rep.avgLatencyMs} ms`;
+      if (p50El) p50El.textContent = `${rep.p50LatencyMs} ms`;
+      if (p95El) p95El.textContent = `${rep.p95LatencyMs} ms`;
+      if (p99El) p99El.textContent = `${rep.p99LatencyMs} ms`;
+
+      runBenchmarkBtn.disabled = false;
+      runBenchmarkBtn.textContent = 'Run Continuous Benchmark Suite';
+    }, 200);
+  });
+}
+
+// Tab Switching (Strict Class Reset)
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     sound.playClick();
     document.querySelectorAll('.tab-btn').forEach(b => {
-      b.classList.remove('border-cyan-500', 'text-cyan-400');
+      b.classList.remove('active', 'border-sky-400', 'text-sky-300', 'border-cyan-500', 'text-cyan-400');
       b.classList.add('border-transparent', 'text-slate-400');
     });
     document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
 
-    btn.classList.add('border-cyan-500', 'text-cyan-400');
     btn.classList.remove('border-transparent', 'text-slate-400');
+    btn.classList.add('active', 'border-sky-400', 'text-sky-300');
     const target = document.getElementById(btn.dataset.tab);
     if (target) target.classList.remove('hidden');
   });
 });
 
-// Initial load
-window.addEventListener('DOMContentLoaded', () => {
-  // Populate preset dropdown
-  if (presetSelect) {
-    presetSelect.innerHTML = '';
-    for (const p of ATTACK_PRESETS) {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = p.name;
-      presetSelect.appendChild(opt);
-    }
-  }
-
-  updateCodeSnippet();
-  if (promptInput) {
-    promptInput.value = ATTACK_PRESETS[0].rawPayload;
-    executeScan();
-  }
-});
-
-// Header Dossier Button
-const headerDossierBtn = document.getElementById('header-dossier-btn');
-if (headerDossierBtn) {
-  headerDossierBtn.addEventListener('click', () => {
-    sound.playClick();
-    const dossierTabBtn = document.querySelector('[data-tab="tab-dossier"]');
-    if (dossierTabBtn) dossierTabBtn.click();
-  });
-}
-
 // Copy Email Button
 const copyEmailBtn = document.getElementById('copy-email-btn');
+let emailTimeout = null;
 if (copyEmailBtn) {
+  const origEmailText = copyEmailBtn.innerHTML;
   copyEmailBtn.addEventListener('click', () => {
     sound.playClick();
-    navigator.clipboard.writeText('pjmitchell@wm.edu').then(() => {
-      copyEmailBtn.textContent = 'Email Copied!';
-      setTimeout(() => (copyEmailBtn.textContent = 'Copy Email'), 2000);
-    });
+    copyTextWithFallback('pjmitchell@wm.edu', copyEmailBtn);
+    if (emailTimeout) clearTimeout(emailTimeout);
+    copyEmailBtn.innerHTML = '<span class="text-emerald-400 font-bold">Email Copied!</span>';
+    emailTimeout = setTimeout(() => {
+      copyEmailBtn.innerHTML = origEmailText;
+      emailTimeout = null;
+    }, 2000);
   });
 }
 
-// Toggle PDF / Semantic Resume View
-const togglePdfBtn = document.getElementById('toggle-pdf-view-btn');
-const semanticResumeView = document.getElementById('semantic-resume-view');
-const rawPdfView = document.getElementById('raw-pdf-view');
-
-if (togglePdfBtn && semanticResumeView && rawPdfView) {
-  togglePdfBtn.addEventListener('click', () => {
-    sound.playClick();
-    const isRawShowing = !rawPdfView.classList.contains('hidden');
-    if (isRawShowing) {
-      rawPdfView.classList.add('hidden');
-      semanticResumeView.classList.remove('hidden');
-      togglePdfBtn.textContent = 'Switch to Raw PDF View';
-    } else {
-      rawPdfView.classList.remove('hidden');
-      semanticResumeView.classList.add('hidden');
-      togglePdfBtn.textContent = 'Switch to Document View';
-    }
-  });
-}
-
-
-// Copy pip install button
+// Copy pip install button (with race condition prevention)
 const copyPipBtn = document.getElementById('copy-pip-btn');
+let pipTimeout = null;
 if (copyPipBtn) {
+  const origPipHtml = copyPipBtn.innerHTML;
   copyPipBtn.addEventListener('click', () => {
     sound.playClick();
-    navigator.clipboard.writeText('pip install shadowprompt').then(() => {
-      const orig = copyPipBtn.innerHTML;
-      copyPipBtn.innerHTML = '<span class="text-emerald-400">Copied to clipboard!</span>';
-      setTimeout(() => (copyPipBtn.innerHTML = orig), 2000);
-    });
+    copyTextWithFallback('pip install shadowprompt', copyPipBtn);
+    if (pipTimeout) clearTimeout(pipTimeout);
+    copyPipBtn.innerHTML = '<span class="text-emerald-400 font-bold">Copied to clipboard!</span>';
+    pipTimeout = setTimeout(() => {
+      copyPipBtn.innerHTML = origPipHtml;
+      pipTimeout = null;
+    }, 2000);
   });
 }
 
@@ -540,4 +535,22 @@ document.querySelectorAll('.walkthrough-step-btn').forEach(btn => {
       if (lView) lView.innerHTML = data.llm;
     }
   });
+});
+
+// Initial Load
+window.addEventListener('DOMContentLoaded', () => {
+  if (presetSelect) {
+    presetSelect.innerHTML = '';
+    for (const p of ATTACK_PRESETS) {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      presetSelect.appendChild(opt);
+    }
+  }
+
+  if (promptInput) {
+    promptInput.value = ATTACK_PRESETS[0].rawPayload;
+    executeScan();
+  }
 });

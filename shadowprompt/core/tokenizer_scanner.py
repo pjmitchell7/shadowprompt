@@ -113,7 +113,7 @@ class TokenizerScanner:
         for match in ZERO_WIDTH_REGEX.finditer(text):
             char = match.group()
             invisible_chars.append(char)
-            name = ZERO_WIDTH_CHARS.get(f"\\u{ord(char):04X}", f"U+{ord(char):04X}")
+            name = ZERO_WIDTH_CHARS.get(char, f"U+{ord(char):04X}")
             threats.append(
                 ThreatDetail(
                     threat_type="ZERO_WIDTH_STEGANOGRAPHY",
