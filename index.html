@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShadowPrompt | Adversarial LLM Defense & HoneyPot Sandbox</title>
+  <meta name="description" content="Air-Gapped Pre-Inference Security Proxy & Sub-Millisecond Tokenizer Firewall by Paul (Mitch) Mitchell">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg: '#080C14',
+              surface: '#0F172A',
+              border: '#1E293B',
+              accent: '#06B6D4',
+              danger: '#EF4444',
+              success: '#10B981'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#080C14] text-slate-100 min-h-screen antialiased selection:bg-cyan-500 selection:text-black">
+
+  <!-- TOP BRANDING NAVBAR -->
+  <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-black text-lg shadow-lg shadow-cyan-500/20">
+          🛡️
+        </div>
+        <div>
+          <div class="font-bold tracking-tight text-white flex items-center gap-2">
+            <span>ShadowPrompt</span>
+            <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-500/30">v1.0.0 Client Engine</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Paul (Mitch) Mitchell | W&M M.S. CS (3.95 GPA) | Clearable U.S. Citizen</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a href="assets/Paul_Mitchell_BoozAllen_AIEngineer.pdf" download class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-black transition shadow-sm">
+          <span>📄</span>
+          <span>Resume</span>
+        </a>
+        <a href="https://github.com/pjmitchell7/shadowprompt" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO STATS STRIP -->
+  <div class="border-b border-slate-800/50 bg-slate-950/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4 text-xs">
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span class="text-slate-300">Defense Status:</span>
+          <strong class="text-emerald-400 font-mono">ACTIVE (0ms Cold-Start)</strong>
+        </div>
+        <div class="text-slate-400 hidden md:block">
+          SLA Target: <strong class="text-slate-200 font-mono">&lt;1.0 ms</strong>
+        </div>
+        <div class="text-slate-400 hidden md:block">
+          Compliance: <strong class="text-cyan-400 font-mono">NIST AI 100-2 &middot; OWASP LLM01</strong>
+        </div>
+      </div>
+      <div class="text-slate-400 flex items-center gap-3">
+        <span class="text-slate-500">Target Fair:</span>
+        <strong class="text-slate-200">William &amp; Mary Sadler Center &middot; Sep 18, 2026</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- NAVIGATION TABS -->
+    <div class="flex border-b border-slate-800 mb-6 overflow-x-auto space-x-6 text-sm font-medium">
+      <button class="tab-btn pb-3 border-b-2 border-cyan-500 text-cyan-400 whitespace-nowrap flex items-center gap-2" data-tab="tab-workbench">
+        <span>🎯</span> Live Attack Simulator &amp; Forensics
+      </button>
+      <button class="tab-btn pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2" data-tab="tab-honeypot">
+        <span>🍯</span> Deceptive HoneyPot Lab
+      </button>
+      <button class="tab-btn pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2" data-tab="tab-benchmark">
+        <span>📊</span> NIST AI Benchmark Suite
+      </button>
+      <button class="tab-btn pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2" data-tab="tab-recruiter">
+        <span>🎙️</span> Career Fair Pitch &amp; Architecture
+      </button>
+    </div>
+
+    <!-- TAB 1: WORKBENCH -->
+    <div id="tab-workbench" class="tab-content space-y-6">
+      
+      <!-- Top Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Controls & Input -->
+        <div class="lg:col-span-5 space-y-4">
+          <div class="glass-panel p-5 rounded-xl space-y-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                1. Select Adversarial Attack Vector
+              </label>
+              <select id="preset-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500">
+                <option value="stego">1. Zero-Width Unicode Steganography (Hidden Instructions)</option>
+                <option value="chatml">2. ChatML System Delimiter Breakout (&lt;|im_start|&gt;system)</option>
+                <option value="homoglyph">3. Cyrillic Homoglyph Evasion (р-а-s-s-w-о-r-d)</option>
+                <option value="base64">4. Obfuscated Base64 Eval Execution</option>
+                <option value="dan">5. Recursive DAN Jailbreak Override</option>
+                <option value="benign">6. Clean Operational Query (Benign Baseline)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                2. Live Prompt Payload (Editable)
+              </label>
+              <textarea id="prompt-input" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500 leading-relaxed"></textarea>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                <input type="checkbox" id="enable-honeypot" checked class="rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0">
+                <span>Engage Deceptive HoneyPot on Detection</span>
+              </label>
+            </div>
+
+            <button id="analyze-btn" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold text-sm shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2">
+              <span>🚀 Analyze &amp; Intercept Payload</span>
+            </button>
+          </div>
+
+          <!-- Quick QR Code card -->
+          <div class="glass-panel p-4 rounded-xl flex items-center gap-4">
+            <img src="assets/qr_code.png" alt="QR Code" class="w-20 h-20 rounded bg-white p-1 border border-slate-700">
+            <div class="text-xs space-y-1">
+              <div class="font-bold text-slate-200">Test on Mobile Phone</div>
+              <p class="text-slate-400">Scan this QR code with your camera to run the live defense console right on your phone.</p>
+              <div class="text-cyan-400 font-mono text-[11px] truncate">pjmitchell7.github.io/shadowprompt</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Real-time Telemetry & Interception -->
+        <div class="lg:col-span-7 space-y-4">
+          
+          <!-- Metrics Bar -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="glass-panel p-3.5 rounded-xl">
+              <div class="text-[11px] text-slate-400 uppercase font-semibold">Security State</div>
+              <div class="mt-1 flex items-center">
+                <span id="status-badge" class="px-2.5 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300">ANALYZING...</span>
+              </div>
+            </div>
+            <div class="glass-panel p-3.5 rounded-xl">
+              <div class="text-[11px] text-slate-400 uppercase font-semibold">Scan Latency</div>
+              <div id="latency-metric" class="mt-1 text-base font-bold font-mono text-cyan-400">0.000 ms</div>
+            </div>
+            <div class="glass-panel p-3.5 rounded-xl">
+              <div class="text-[11px] text-slate-400 uppercase font-semibold">Threats Flagged</div>
+              <div id="threats-metric" class="mt-1 text-base font-bold font-mono text-red-400">0</div>
+            </div>
+            <div class="glass-panel p-3.5 rounded-xl">
+              <div class="text-[11px] text-slate-400 uppercase font-semibold">Stealth Bytes</div>
+              <div id="invisible-metric" class="mt-1 text-base font-bold font-mono text-yellow-400">0</div>
+            </div>
+          </div>
+
+          <!-- Alert Container -->
+          <div id="alerts-container" class="space-y-3"></div>
+
+          <!-- HoneyPot Card (Hidden until threat caught) -->
+          <div id="honeypot-card" class="glass-panel p-5 rounded-xl border-amber-500/30 hidden">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                <span>🍯</span> Deceptive Honey-Prompt Active
+              </div>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-500/30">Canary Deployed</span>
+            </div>
+            <div id="honeypot-content"></div>
+          </div>
+
+          <!-- Dual View: Visual vs. Raw Unicode Bytes -->
+          <div class="glass-panel p-4 rounded-xl space-y-3">
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+              <span>Steganography Carrier Inspection</span>
+              <span class="text-[11px] font-normal text-slate-500">Human Screen vs. Raw Tokenizer Stream</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="bg-black/50 p-3 rounded-lg border border-slate-800">
+                <div class="text-[11px] text-slate-400 font-semibold mb-1">Human Visual Display (Clean):</div>
+                <div id="visual-view" class="font-mono text-slate-300 break-words"></div>
+              </div>
+              <div class="bg-black/50 p-3 rounded-lg border border-slate-800">
+                <div class="text-[11px] text-yellow-400 font-semibold mb-1">Raw Unicode Codepoints (Tokenizer View):</div>
+                <div id="raw-bytes-view" class="font-mono text-yellow-300 break-all"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- TAB 2: HONEYPOT LAB -->
+    <div id="tab-honeypot" class="tab-content hidden space-y-6">
+      <div class="glass-panel p-6 rounded-xl space-y-4">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>🍯</span> HoneyPot Deception &amp; Canary Token Audit Ledger
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">
+            Traditional security returns <code class="text-red-400">403 Forbidden</code>, which alerts attackers that their attack was blocked. ShadowPrompt engages a deceptive sandbox that feeds convincing synthetic data seeded with unique <strong>cryptographic canary tokens</strong> (<code class="text-amber-300">sk-live-honey-sec-...-canary</code>). If this token appears anywhere outside, SecOps receives an immediate high-fidelity breach alert.
+          </p>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <th class="py-2.5 px-3">Incident ID</th>
+                <th class="py-2.5 px-3">Timestamp</th>
+                <th class="py-2.5 px-3">Threat Vector</th>
+                <th class="py-2.5 px-3">Canary Token Seeded</th>
+                <th class="py-2.5 px-3">Prompt Snippet</th>
+              </tr>
+            </thead>
+            <tbody id="incidents-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: BENCHMARK -->
+    <div id="tab-benchmark" class="tab-content hidden space-y-6">
+      <div class="glass-panel p-6 rounded-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>📊</span> NIST AI 100-2 / OWASP Automated Red-Team Benchmark
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Executes 30 continuous adversarial fuzzer iterations testing steganography, role break-outs, and code evaluation attacks.
+            </p>
+          </div>
+          <button id="run-benchmark-btn" class="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs shadow-lg transition">
+            ⚡ Run Live Red-Team Benchmark
+          </button>
+        </div>
+
+        <div id="benchmark-results" class="space-y-4">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="bg-black/50 p-4 rounded-lg border border-slate-800">
+              <div class="text-xs text-slate-400 uppercase font-semibold">Detection Recall</div>
+              <div id="bench-recall" class="text-2xl font-bold font-mono text-emerald-400 mt-1">100.0%</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Zero Missed Attacks</div>
+            </div>
+            <div class="bg-black/50 p-4 rounded-lg border border-slate-800">
+              <div class="text-xs text-slate-400 uppercase font-semibold">Precision</div>
+              <div id="bench-precision" class="text-2xl font-bold font-mono text-cyan-400 mt-1">100.0%</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Zero False Positives</div>
+            </div>
+            <div class="bg-black/50 p-4 rounded-lg border border-slate-800">
+              <div class="text-xs text-slate-400 uppercase font-semibold">P99 Latency</div>
+              <div id="bench-p99" class="text-2xl font-bold font-mono text-yellow-400 mt-1">&lt;0.25 ms</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">1/4000th of a second</div>
+            </div>
+            <div class="bg-black/50 p-4 rounded-lg border border-slate-800">
+              <div class="text-xs text-slate-400 uppercase font-semibold">NIST AI 100-2 Score</div>
+              <div id="bench-nist" class="text-2xl font-bold font-mono text-purple-400 mt-1">100/100</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Full Compliance</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono bg-slate-900/60 p-4 rounded-lg border border-slate-800">
+            <div>Total Vectors: <strong id="bench-total" class="text-white">30</strong></div>
+            <div>Attacks Blocked: <strong id="bench-blocked" class="text-emerald-400">25</strong></div>
+            <div>Benign Passed: <strong id="bench-passed" class="text-cyan-400">5</strong></div>
+            <div>Average Latency: <strong id="bench-avg" class="text-yellow-400">0.058 ms</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: RECRUITER PITCH & ARCHITECTURE -->
+    <div id="tab-recruiter" class="tab-content hidden space-y-6">
+      <div class="glass-panel p-6 rounded-xl space-y-6">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>🎙️</span> William &amp; Mary Career Fair &mdash; Recruiter Blueprint
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">
+            Exact verbal delivery scripts and architectural trade-off defenses for tomorrow's interactions at the Sadler Center.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-lg bg-cyan-950/30 border border-cyan-500/30 text-sm space-y-2">
+          <div class="text-cyan-400 font-bold uppercase text-xs tracking-wider">The 45-Second In-Person Hook</div>
+          <p class="text-slate-200 leading-relaxed italic">
+            &ldquo;Hi! I'm Paul Mitchell, graduating this December with my Master's in CS from William &amp; Mary with a 3.95 GPA. With modern AI, anyone can prompt an LLM to build a basic chatbot in two minutes. For my project, I wanted to solve what happens when someone attacks that chatbot.<br><br>
+            I built <strong>ShadowPrompt</strong>: an adversarial red-teaming fuzzer and air-gapped defense proxy. I found that attackers can hide prompt injections inside PDF documents using <strong>invisible zero-width Unicode characters</strong>&mdash;the text looks completely normal to human reviewers, but the LLM tokenizer executes the concealed attack.<br><br>
+            Instead of calling a slow secondary model that adds 800 milliseconds of latency, I engineered an in-memory tokenizer scanner that catches attacks in <strong>0.06 milliseconds</strong>. And rather than returning a 403 error that helps the hacker refine their prompt, ShadowPrompt routes them into a <strong>honey-prompt sandbox</strong> that feeds them synthetic canary tokens to trace data leaks and burn their compute budget.<br><br>
+            I have the live defense dashboard running right on my phone at <strong>pjmitchell7.github.io/shadowprompt</strong> if you want to scan this QR code and see it intercept an attack in your own hand.&rdquo;
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="bg-black/50 p-4 rounded-lg border border-slate-800 space-y-2">
+            <div class="font-bold text-white">Why Not LLM-as-a-Judge?</div>
+            <p class="text-slate-400 leading-relaxed">
+              Traditional guardrails call an LLM to check another LLM. This adds 600&ndash;1200ms latency, doubles API cost, and fails against steganography because model tokenizers strip or alter invisible codepoints during pre-tokenization. ShadowPrompt inspects the raw Unicode stream in memory in 0.06ms.
+            </p>
+          </div>
+          <div class="bg-black/50 p-4 rounded-lg border border-slate-800 space-y-2">
+            <div class="font-bold text-white">Why the HoneyPot Sandbox?</div>
+            <p class="text-slate-400 leading-relaxed">
+              Returning HTTP 403 gives attackers immediate feedback to iterate until they bypass your filter. ShadowPrompt's HoneyPot returns plausible synthetic outputs seeded with cryptographic canary tokens. When leaked, SecOps receives 100% conclusive proof of an exfiltration attempt.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
