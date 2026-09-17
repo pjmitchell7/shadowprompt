@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+streamlit
+pydantic
+rich
+pandas
+numpy
+scikit-learn
+pytest
