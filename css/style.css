@@ -124,3 +124,16 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
+
+/* Strict Tab Visibility & Reset */
+.hidden {
+  display: none !important;
+}
+
+.tab-content.hidden {
+  display: none !important;
+}
+
+.tab-content:not(.hidden) {
+  display: block;
+}

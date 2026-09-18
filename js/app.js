@@ -442,6 +442,10 @@ if (runBenchmarkBtn) {
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     sound.playClick();
+    const nativeVid = document.getElementById('native-explainer-video');
+    if (nativeVid && btn.dataset.tab !== 'tab-threat-matrix') {
+      nativeVid.pause();
+    }
     document.querySelectorAll('.tab-btn').forEach(b => {
       b.classList.remove('active', 'border-sky-400', 'text-sky-300', 'border-cyan-500', 'text-cyan-400');
       b.classList.add('border-transparent', 'text-slate-400');
@@ -454,6 +458,31 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (target) target.classList.remove('hidden');
   });
 });
+
+// Video Stream Switcher
+const videoNativeBtn = document.getElementById('video-native-btn');
+const videoStreamBtn = document.getElementById('video-stream-btn');
+const nativeVid = document.getElementById('native-explainer-video');
+const ytIframe = document.getElementById('youtube-explainer-iframe');
+
+if (videoNativeBtn && videoStreamBtn && nativeVid && ytIframe) {
+  videoNativeBtn.addEventListener('click', () => {
+    sound.playClick();
+    ytIframe.classList.add('hidden');
+    nativeVid.classList.remove('hidden');
+    videoNativeBtn.className = 'px-3 py-1 rounded-lg bg-sky-500/20 border border-sky-500/40 text-sky-300 text-xs font-mono font-medium hover:bg-sky-500/30 transition';
+    videoStreamBtn.className = 'px-3 py-1 rounded-lg bg-slate-900 border border-white/10 text-slate-400 text-xs font-mono font-medium hover:bg-slate-800 transition';
+  });
+
+  videoStreamBtn.addEventListener('click', () => {
+    sound.playClick();
+    nativeVid.pause();
+    nativeVid.classList.add('hidden');
+    ytIframe.classList.remove('hidden');
+    videoStreamBtn.className = 'px-3 py-1 rounded-lg bg-sky-500/20 border border-sky-500/40 text-sky-300 text-xs font-mono font-medium hover:bg-sky-500/30 transition';
+    videoNativeBtn.className = 'px-3 py-1 rounded-lg bg-slate-900 border border-white/10 text-slate-400 text-xs font-mono font-medium hover:bg-slate-800 transition';
+  });
+}
 
 // Copy Email Button
 const copyEmailBtn = document.getElementById('copy-email-btn');
