@@ -1,5 +1,5 @@
-/* ShadowPrompt: Enterprise Open-Source AI Security Console */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+/* ShadowPrompt: Grandmaster Cyber-Defense & Tactical AI Security Console */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -10,7 +10,7 @@ html, body {
   width: 100%;
   margin: 0;
   padding: 0;
-  background-color: #080A0F;
+  background-color: #06080D;
   color: #E2E8F0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -24,29 +24,89 @@ html, body {
   font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* Composite Background: Ambient Glow + Dot Matrix Pattern */
-.bg-obsidian-glow {
-  background-color: #080A0F;
-  background-image:
-    radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.12) 0%, transparent 65%),
-    radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.08) 0%, transparent 55%);
-  background-size: 24px 24px, 100% 100%, 100% 100%;
+/* Background Canvas (Matrix Digital Rain + Falling White Chess Pieces) */
+#matrix-chess-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.65;
 }
 
-/* Luxury Titanium Glass Panels */
+/* Content Layer above canvas */
+.app-content-layer {
+  position: relative;
+  z-index: 10;
+}
+
+/* Tactical Scanline CRT Texture Overlay */
+.cyber-scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+}
+
+/* Cybernetic Glowing Glass Panels */
 .titanium-card {
-  background: rgba(14, 18, 27, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  background: rgba(10, 14, 23, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.7);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.titanium-card:hover {
+  border-color: rgba(56, 189, 248, 0.25);
 }
 
 .titanium-card-glow {
-  background: rgba(14, 18, 27, 0.85);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  box-shadow: 0 0 35px -5px rgba(56, 189, 248, 0.12);
+  background: rgba(12, 17, 28, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 40px -5px rgba(56, 189, 248, 0.18);
+}
+
+.cyber-border-emerald {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.15);
+}
+
+.cyber-border-purple {
+  border-color: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 25px -5px rgba(168, 85, 247, 0.15);
+}
+
+/* Radar Sweep Animation */
+.radar-blip {
+  position: relative;
+}
+
+.radar-blip::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 9999px;
+  border: 1.5px solid #10B981;
+  animation: radar-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes radar-ping {
+  0% { transform: scale(1); opacity: 1; }
+  75%, 100% { transform: scale(2.2); opacity: 0; }
 }
 
 /* Interactive Byte Grid */
@@ -104,21 +164,16 @@ html, body {
   50% { border-color: rgba(244, 63, 94, 0.4); box-shadow: 0 0 0 rgba(244, 63, 94, 0); }
 }
 
-/* Subtle dot grid pattern (composited into bg-obsidian-glow) */
-.dot-pattern {
-  /* Composited into bg-obsidian-glow */
-}
-
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #080A0F;
+  background: #06080D;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E2638;
+  background: #192233;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {

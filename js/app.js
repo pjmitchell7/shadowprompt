@@ -518,6 +518,23 @@ if (copyPipBtn) {
   });
 }
 
+// Matrix Canvas Toggle Button
+const matrixToggleBtn = document.getElementById('matrix-toggle-btn');
+if (matrixToggleBtn) {
+  matrixToggleBtn.addEventListener('click', () => {
+    sound.playClick();
+    if (window.matrixEngine) {
+      const isPaused = window.matrixEngine.togglePause();
+      matrixToggleBtn.innerHTML = isPaused
+        ? '<span class="w-2 h-2 rounded-full bg-slate-500"></span><span class="hidden sm:inline">Matrix: Paused</span>'
+        : '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span class="hidden sm:inline">Matrix: Active</span>';
+      matrixToggleBtn.className = isPaused
+        ? 'px-2.5 py-1.5 rounded-lg border border-slate-700 text-slate-400 bg-slate-900/50 text-xs font-mono transition flex items-center space-x-1.5'
+        : 'px-2.5 py-1.5 rounded-lg border border-emerald-500/40 text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/50 text-xs font-mono transition flex items-center space-x-1.5';
+    }
+  });
+}
+
 // Header Maintainer Button
 const headerMaintainerBtn = document.getElementById('header-maintainer-btn');
 if (headerMaintainerBtn) {
