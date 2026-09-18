@@ -612,6 +612,75 @@ clean_prompt, threats = proxy.inspect_stream(request.raw_bytes)</code>
           </div>
         </div>
 
+        <!-- Game-Theoretic Adversarial Gambit Arena -->
+        <div class="mt-8 bg-[#0B0F19] p-6 rounded-2xl border border-white/[0.08] space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-300 text-xs font-mono font-semibold mb-2">
+                <span>GAME-THEORETIC CHESS ATTACK SIMULATION</span>
+              </div>
+              <h3 class="text-xl font-bold text-white font-display">Adversarial Patch Goading &amp; Sanitization Traps</h3>
+              <p class="text-xs text-slate-400 mt-1 font-mono max-w-3xl">
+                Can an attacker sacrifice a pawn to force an automated firewall into writing a reactive patch, and then use that exact patch to deliver a 3-move checkmate? ShadowPrompt implements Anti-Goading Invariants to neutralize patch-induced vulnerabilities.
+              </p>
+            </div>
+            <button id="run-gambit-btn" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg transition font-mono">
+              Simulate 3-Move Gambit Attacks
+            </button>
+          </div>
+
+          <!-- 3-Move Gambit Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
+            <!-- Play 1: Assembly Trap -->
+            <div class="bg-[#141A28] p-4 rounded-xl border border-white/10 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-purple-400 font-bold uppercase">Play 1: Assembly Trap</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Neutralized</span>
+              </div>
+              <p class="text-slate-300 text-[11px] leading-relaxed">
+                <strong>Bait:</strong> Attacker probes with <code>[OVERRIDE]</code>.<br>
+                <strong>Checkmate:</strong> Attacker fires <code>OVE[OVERRIDE]RRIDE</code>. Naive stripping collapses outer fragments into <code>OVERRIDE</code>.<br>
+                <strong>ShadowPrompt Defense:</strong> Non-collapsible sentinel replacement <code>[BLOCKED_TOKEN]</code> prevents fragment reassembly.
+              </p>
+            </div>
+
+            <!-- Play 2: Policy Poisoning -->
+            <div class="bg-[#141A28] p-4 rounded-xl border border-white/10 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-purple-400 font-bold uppercase">Play 2: Policy Poisoning</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Neutralized</span>
+              </div>
+              <p class="text-slate-300 text-[11px] leading-relaxed">
+                <strong>Bait:</strong> Flood of exploits salted with enterprise word <code>system</code>.<br>
+                <strong>Checkmate:</strong> Auto-patcher overfits and blocks benign queries (42% false-positive rate).<br>
+                <strong>ShadowPrompt Defense:</strong> Sandbox specificity audit rejects rules matching common enterprise vocabulary.
+              </p>
+            </div>
+
+            <!-- Play 3: ReDoS Complexity -->
+            <div class="bg-[#141A28] p-4 rounded-xl border border-white/10 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-purple-400 font-bold uppercase">Play 3: ReDoS Complexity</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Neutralized</span>
+              </div>
+              <p class="text-slate-300 text-[11px] leading-relaxed">
+                <strong>Bait:</strong> Attacker probes with whitespace permutations.<br>
+                <strong>Checkmate:</strong> Auto-patcher deploys catastrophic nested quantifiers <code>(a+)+$</code>, freezing CPU at 100%.<br>
+                <strong>ShadowPrompt Defense:</strong> Static AST analyzer detects nested quantifiers in 0.001 ms and rejects backtracking patches.
+              </p>
+            </div>
+          </div>
+
+          <!-- Live Gambit Telemetry Console -->
+          <div id="gambit-console" class="hidden bg-black/80 p-4 rounded-xl border border-white/10 text-xs font-mono space-y-2">
+            <div class="flex items-center justify-between text-slate-400 border-b border-white/10 pb-2">
+              <span class="text-sky-400 font-semibold">Live Game-Theoretic Arbitration Output</span>
+              <span id="gambit-status" class="text-emerald-400">All 3 Plays Evaluated &middot; 0 Breaches</span>
+            </div>
+            <pre id="gambit-log" class="text-slate-300 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-64"></pre>
+          </div>
+        </div>
+
       </div>
 
     </section>
