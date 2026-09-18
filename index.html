@@ -421,13 +421,13 @@
             <div class="flex flex-wrap items-center gap-2">
               <span class="text-slate-400 text-[11px]">Quick Jump:</span>
               <button onclick="if(window.threeChessArena){window.threeChessArena.jumpTo(16.3);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
-                Move 1: Attacker Probe (fxg3+)
+                Move 1: Attacker Probe (f3xg2+)
               </button>
               <button onclick="if(window.threeChessArena){window.threeChessArena.jumpTo(34.5);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
-                Move 2: Queen Blunder (Qxg3)
+                Move 2: Queen Blunder (Qd2xg2)
               </button>
               <button onclick="if(window.threeChessArena){window.threeChessArena.jumpTo(48.5);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
-                Move 3: Sniper Checkmate (Bxg3!)
+                Move 3: Sniper Checkmate (Ba8xg2#)
               </button>
               <button onclick="if(window.threeChessArena){window.threeChessArena.jumpTo(68.1);}" class="px-3 py-1.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-emerald-400 font-bold hover:bg-emerald-900/50 transition">
                 Move 4: Invariant Shield
@@ -504,26 +504,26 @@
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-[11px]">
               <div class="p-3 bg-black/50 rounded-lg border border-purple-500/30 space-y-1">
-                <span class="text-purple-400 font-bold block">Move 1: fxg3+ (Probe)</span>
-                <p class="text-slate-300">Pawn captures shield pawn; White King placed in check. King flashes pink alarm.</p>
+                <span class="text-purple-400 font-bold block">Move 1: f3xg2+ (Probe)</span>
+                <p class="text-slate-300">Pawn captures g2 shield; White King on h1 placed in direct check. King flashes pink alarm.</p>
                 <div class="text-slate-500 text-[10px]">AST: Interleaved probe <code>OVE[FILTER]RRIDE</code></div>
               </div>
 
               <div class="p-3 bg-black/50 rounded-lg border border-amber-500/30 space-y-1">
-                <span class="text-amber-400 font-bold block">Move 2: Qxg3 (Blunder)</span>
-                <p class="text-slate-300">White Queen eliminates pawn; steps directly onto the long dark diagonal.</p>
+                <span class="text-amber-400 font-bold block">Move 2: Qd2xg2 (Blunder)</span>
+                <p class="text-slate-300">White Queen sweeps rank 2 into trap; steps onto the open a8-h1 diagonal.</p>
                 <div class="text-slate-500 text-[10px]">Filter: Deletes <code>[FILTER]</code>; outer halves collapse</div>
               </div>
 
               <div class="p-3 bg-black/50 rounded-lg border border-rose-500/30 space-y-1">
-                <span class="text-rose-400 font-bold block">Move 3: Bxg3! (Sniper)</span>
-                <p class="text-slate-300">Red Bishop snipes Queen from a8. King defenseless; checkmate.</p>
+                <span class="text-rose-400 font-bold block">Move 3: Ba8xg2# (Sniper)</span>
+                <p class="text-slate-300">Red Bishop snipes Queen on g2. Trapped King on h1 has zero moves: checkmate.</p>
                 <div class="text-slate-500 text-[10px]">Breach: <code>OVERRIDE</code> executes; 3.2M records leak</div>
               </div>
 
               <div class="p-3 bg-black/50 rounded-lg border border-emerald-500/30 space-y-1">
                 <span class="text-emerald-400 font-bold block">Move 4: Invariant Shield</span>
-                <p class="text-slate-300">Queen stays protected; Non-Collapsible Sentinel deployed in 0.038ms.</p>
+                <p class="text-slate-300">Queen stays protected; Non-Collapsible Sentinel deployed on g2 in 0.038ms.</p>
                 <div class="text-slate-500 text-[10px]">ShadowPrompt: Fail-closed abort; 0 records exposed</div>
               </div>
             </div>

@@ -152,7 +152,20 @@ async def run_verification():
             await arena_container.screenshot(path=red_path)
             print(f"Captured: {red_path}")
 
-        # 2D. 3D Floating HUD Card (Move 1 - fxg3+)
+        # 2D. Move 1 - Red Pawn f3xg2+ (Check on King h1)
+        print("Testing Move 1: f3xg2+ Check...")
+        await page_d.evaluate("""() => {
+            if (window.threeChessArena) {
+                window.threeChessArena.jumpTo(22.0);
+            }
+        }""")
+        await asyncio.sleep(1.5)
+        move1_path = os.path.join(artifact_dir, "Verified_Move1_Check_h1.png")
+        if arena_container:
+            await arena_container.screenshot(path=move1_path)
+            print(f"Captured: {move1_path}")
+
+        # 2E. 3D Floating HUD Card (Move 1 Active Piece)
         print("Testing 3D-Anchored Floating HUD Card...")
         await page_d.evaluate("""() => {
             if (window.threeChessArena) {
@@ -165,12 +178,26 @@ async def run_verification():
             await arena_container.screenshot(path=hud_path)
             print(f"Captured: {hud_path}")
 
-        # 2E. Move 3 - Red Bishop Sniper Strike & Laser
+        # 2F. Move 2 - White Queen Blunder Qd2xg2 along Rank 2
+        print("Testing Move 2: Qd2xg2 Queen Blunder...")
+        await page_d.evaluate("""() => {
+            if (window.threeChessArena) {
+                window.threeChessArena.closeFloatingHud();
+                window.threeChessArena.jumpTo(42.0);
+            }
+        }""")
+        await asyncio.sleep(1.5)
+        move2_path = os.path.join(artifact_dir, "Verified_Move2_Queen_Rank2_Blunder.png")
+        if arena_container:
+            await arena_container.screenshot(path=move2_path)
+            print(f"Captured: {move2_path}")
+
+        # 2G. Move 3 - Red Bishop Sniper Laser Targeting (a8 -> g2)
         print("Testing Move 3 Sniper Strike & Laser...")
         await page_d.evaluate("""() => {
             if (window.threeChessArena) {
                 window.threeChessArena.closeFloatingHud();
-                window.threeChessArena.jumpTo(50.0);
+                window.threeChessArena.jumpTo(52.0);
             }
         }""")
         await asyncio.sleep(1.5)
@@ -179,7 +206,20 @@ async def run_verification():
             await arena_container.screenshot(path=laser_path)
             print(f"Captured: {laser_path}")
 
-        # 2F. Move 4 - Invariant Sentinel Barrier
+        # 2H. Move 3 Checkmate Landing (Ba8xg2#)
+        print("Testing Move 3 Checkmate Landing...")
+        await page_d.evaluate("""() => {
+            if (window.threeChessArena) {
+                window.threeChessArena.jumpTo(62.0);
+            }
+        }""")
+        await asyncio.sleep(1.5)
+        mate_path = os.path.join(artifact_dir, "Verified_Move3_Checkmate_Complete.png")
+        if arena_container:
+            await arena_container.screenshot(path=mate_path)
+            print(f"Captured: {mate_path}")
+
+        # 2I. Move 4 - Invariant Sentinel Barrier
         print("Testing Move 4 Invariant Sentinel Barrier...")
         await page_d.evaluate("""() => {
             if (window.threeChessArena) {

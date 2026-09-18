@@ -2,8 +2,11 @@
  * ShadowPrompt 3D WebGL Chessboard Arena (v2.0 Production)
  * Powered by Three.js (r128).
  * Dramatizes multi-move adversarial exploit against Memorial Hospital's Oncology EHR system:
- * - Legal Moves: fxg3+ (Sacrificial Probe), Qxg3 (Naive Filter Blunder), Bxg3! (Sniper Assembly Checkmate)
- * - Invariant Shield: ShadowPrompt Non-Collapsible Sentinel fail-closed defense.
+ * - 100% Legal Grandmaster Moves:
+ *     Move 1: f3xg2+ (Sacrificial Probe checks White King on h1)
+ *     Move 2: Qd2xg2 (Naive Filter Blunder sweeps rank 2 into trap)
+ *     Move 3: Ba8xg2# (Sniper Assembly Checkmate along a8-h1 diagonal)
+ * - Invariant Shield: ShadowPrompt Non-Collapsible Sentinel fail-closed defense (g2 locked in 0.038ms).
  * - Mobile Portrait Auto-Framing & FOV Dynamic Compensation (aspect < 1.0).
  * - Dynamic Perspective Switching (White Defender View vs Red Attacker View).
  * - Visual Move Indicators: Pulsing active ring decal, source & target tile highlights, sniper laser beam.
@@ -256,11 +259,11 @@
       this.toTileMesh.visible = false;
       this.scene.add(this.toTileMesh);
 
-      // 4. Red Bishop Diagonal Sniper Laser (a8 -> g3) - Volumetric 3D Cylinder Beam
+      // 4. Red Bishop Diagonal Sniper Laser (a8 -> g2) - Volumetric 3D Cylinder Beam
       const posA8 = this.getSquarePos('a8');
-      const posG3 = this.getSquarePos('g3');
+      const posG2 = this.getSquarePos('g2');
       const p1 = new THREE.Vector3(posA8.x, 0.65, posA8.z);
-      const p2 = new THREE.Vector3(posG3.x, 0.65, posG3.z);
+      const p2 = new THREE.Vector3(posG2.x, 0.65, posG2.z);
       const dist = p1.distanceTo(p2);
       const laserGeo = new THREE.CylinderGeometry(0.05, 0.05, dist, 12);
       const laserMat = new THREE.MeshBasicMaterial({
@@ -303,70 +306,113 @@
         body.castShadow = true;
         group.add(body);
 
-        const headGeo = new THREE.SphereGeometry(0.22, 20, 20);
+        const collarGeo = new THREE.CylinderGeometry(0.24, 0.18, 0.08, 16);
+        const collar = new THREE.Mesh(collarGeo, mat);
+        collar.position.y = 0.62;
+        group.add(collar);
+
+        const headGeo = new THREE.SphereGeometry(0.20, 20, 20);
         const head = new THREE.Mesh(headGeo, mat);
-        head.position.y = 0.7;
+        head.position.y = 0.76;
         head.castShadow = true;
         group.add(head);
 
       } else if (type === 'king') {
-        const bodyGeo = new THREE.CylinderGeometry(0.24, 0.38, 0.9, 24);
+        // King: Tallest piece, wide imperial robe, prominent Latin cross finial
+        const bodyGeo = new THREE.CylinderGeometry(0.25, 0.40, 0.95, 24);
         const body = new THREE.Mesh(bodyGeo, mat);
-        body.position.y = 0.55;
+        body.position.y = 0.58;
         body.castShadow = true;
         group.add(body);
 
-        const crownGeo = new THREE.CylinderGeometry(0.32, 0.22, 0.25, 16);
+        const collarGeo = new THREE.CylinderGeometry(0.34, 0.28, 0.10, 20);
+        const collar = new THREE.Mesh(collarGeo, mat);
+        collar.position.y = 1.08;
+        group.add(collar);
+
+        const crownGeo = new THREE.CylinderGeometry(0.35, 0.22, 0.26, 16);
         const crown = new THREE.Mesh(crownGeo, mat);
-        crown.position.y = 1.05;
+        crown.position.y = 1.22;
         crown.castShadow = true;
         group.add(crown);
 
-        const crossV = new THREE.BoxGeometry(0.06, 0.2, 0.06);
-        const crossH = new THREE.BoxGeometry(0.16, 0.06, 0.06);
-        const crossMeshV = new THREE.Mesh(crossV, mat);
-        crossMeshV.position.y = 1.25;
+        // Prominent Imperial Latin Cross atop King
+        const crossMat = mat.clone();
+        crossMat.metalness = 0.9;
+        const crossV = new THREE.BoxGeometry(0.08, 0.28, 0.08);
+        const crossH = new THREE.BoxGeometry(0.22, 0.08, 0.08);
+        const crossMeshV = new THREE.Mesh(crossV, crossMat);
+        crossMeshV.position.y = 1.44;
         group.add(crossMeshV);
-        const crossMeshH = new THREE.Mesh(crossH, mat);
-        crossMeshH.position.y = 1.25;
+        const crossMeshH = new THREE.Mesh(crossH, crossMat);
+        crossMeshH.position.y = 1.48;
         group.add(crossMeshH);
 
       } else if (type === 'queen') {
-        const bodyGeo = new THREE.CylinderGeometry(0.23, 0.38, 0.85, 24);
+        // Queen: Elegant feminine waist, flared royal tiara coronet, gleaming golden orb finial
+        const bodyGeo = new THREE.CylinderGeometry(0.22, 0.38, 0.88, 24);
         const body = new THREE.Mesh(bodyGeo, mat);
-        body.position.y = 0.52;
+        body.position.y = 0.54;
         body.castShadow = true;
         group.add(body);
 
-        const coronetGeo = new THREE.CylinderGeometry(0.34, 0.18, 0.28, 16);
+        const neckGeo = new THREE.CylinderGeometry(0.18, 0.24, 0.16, 20);
+        const neck = new THREE.Mesh(neckGeo, mat);
+        neck.position.y = 1.02;
+        group.add(neck);
+
+        // Flared tiara coronet (tapered waist flaring outward at the top rim)
+        const coronetGeo = new THREE.CylinderGeometry(0.38, 0.18, 0.26, 20);
         const coronet = new THREE.Mesh(coronetGeo, mat);
-        coronet.position.y = 1.0;
+        coronet.position.y = 1.18;
         coronet.castShadow = true;
         group.add(coronet);
 
-        const ballGeo = new THREE.SphereGeometry(0.1, 16, 16);
-        const ball = new THREE.Mesh(ballGeo, mat);
-        ball.position.y = 1.18;
+        // Gleaming golden sphere finial atop Queen
+        const goldMat = new THREE.MeshStandardMaterial({
+          color: isWhite ? 0xFCD34D : 0xFB7185,
+          roughness: 0.2,
+          metalness: 0.95,
+          emissive: isWhite ? 0xF59E0B : 0xE11D48,
+          emissiveIntensity: 0.6
+        });
+        const ballGeo = new THREE.SphereGeometry(0.12, 16, 16);
+        const ball = new THREE.Mesh(ballGeo, goldMat);
+        ball.position.y = 1.36;
         ball.castShadow = true;
         group.add(ball);
 
       } else if (type === 'bishop') {
-        const bodyGeo = new THREE.CylinderGeometry(0.2, 0.35, 0.72, 20);
+        // Bishop: Slender mitre with pointed top and diagonal incision slit
+        const bodyGeo = new THREE.CylinderGeometry(0.19, 0.35, 0.78, 20);
         const body = new THREE.Mesh(bodyGeo, mat);
-        body.position.y = 0.46;
+        body.position.y = 0.49;
         body.castShadow = true;
         group.add(body);
 
+        const neckGeo = new THREE.CylinderGeometry(0.18, 0.22, 0.10, 16);
+        const neck = new THREE.Mesh(neckGeo, mat);
+        neck.position.y = 0.92;
+        group.add(neck);
+
         const mitreGeo = new THREE.SphereGeometry(0.24, 20, 20);
-        mitreGeo.scale(0.85, 1.35, 0.85);
+        mitreGeo.scale(0.85, 1.45, 0.85);
         const mitre = new THREE.Mesh(mitreGeo, mat);
-        mitre.position.y = 0.95;
+        mitre.position.y = 1.12;
         mitre.castShadow = true;
         group.add(mitre);
 
+        // Slanted mitre slit (unmistakable Bishop identifier)
+        const slitGeo = new THREE.BoxGeometry(0.28, 0.05, 0.18);
+        const slitMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const slit = new THREE.Mesh(slitGeo, slitMat);
+        slit.position.set(0.08, 1.18, 0);
+        slit.rotation.z = -0.35;
+        group.add(slit);
+
         const finialGeo = new THREE.SphereGeometry(0.07, 12, 12);
         const finial = new THREE.Mesh(finialGeo, mat);
-        finial.position.y = 1.28;
+        finial.position.y = 1.38;
         group.add(finial);
 
       } else if (type === 'knight') {
@@ -384,17 +430,34 @@
         group.add(head);
 
       } else if (type === 'rook') {
-        const bodyGeo = new THREE.CylinderGeometry(0.24, 0.38, 0.65, 24);
+        // Rook: Heavy castle tower fortress with 4 distinct square battlements / merlons!
+        const bodyGeo = new THREE.CylinderGeometry(0.28, 0.38, 0.70, 24);
         const body = new THREE.Mesh(bodyGeo, mat);
-        body.position.y = 0.44;
+        body.position.y = 0.45;
         body.castShadow = true;
         group.add(body);
 
-        const battlementGeo = new THREE.CylinderGeometry(0.34, 0.28, 0.24, 16);
-        const battlement = new THREE.Mesh(battlementGeo, mat);
-        battlement.position.y = 0.84;
-        battlement.castShadow = true;
-        group.add(battlement);
+        // Turret platform
+        const turretGeo = new THREE.CylinderGeometry(0.36, 0.30, 0.14, 20);
+        const turret = new THREE.Mesh(turretGeo, mat);
+        turret.position.y = 0.84;
+        turret.castShadow = true;
+        group.add(turret);
+
+        // 4 unmistakable square crenellations / battlements around the turret rim
+        const merlonGeo = new THREE.BoxGeometry(0.12, 0.15, 0.12);
+        const offsets = [
+          { x: 0.23, z: 0 },
+          { x: -0.23, z: 0 },
+          { x: 0, z: 0.23 },
+          { x: 0, z: -0.23 }
+        ];
+        offsets.forEach(off => {
+          const m = new THREE.Mesh(merlonGeo, mat);
+          m.position.set(off.x, 0.97, off.z);
+          m.castShadow = true;
+          group.add(m);
+        });
       }
 
       group.userData = {
@@ -407,58 +470,53 @@
     }
 
     buildPieces() {
-      // 1. White King on e1 (The Hospital EHR Core Asset)
+      // 1. White King on h1 (Castled Memorial Hospital EHR Core Asset)
       const whiteKing = this.createPieceMesh('king', 'white');
-      const posE1 = this.getSquarePos('e1');
-      whiteKing.position.set(posE1.x, 0, posE1.z);
+      const posH1 = this.getSquarePos('h1');
+      whiteKing.position.set(posH1.x, 0, posH1.z);
       whiteKing.userData.name = 'White King (Memorial EHR Core)';
       whiteKing.userData.forensic = {
-        title: 'Target Core // Memorial EHR Database',
+        title: 'Target Core // Memorial EHR Database (h1)',
         role: 'Protected Asset: 3,200,000 Oncology Patient Records',
-        desc: 'Protected by automated perimeter sanitization filters. Vulnerable to structural payload assembly.'
+        desc: 'Stationed on h1 behind the g2 pawn shield. Placed in direct check by Move 1 (f3xg2+) and checkmated on Move 3 (Ba8xg2#).'
       };
       this.scene.add(whiteKing);
       this.pieces.whiteKing = whiteKing;
 
-      // 2. White Queen on d1 (Sanitization Filter / Firewall)
+      // 2. White Queen on d2 (Naive Sanitization Filter on Rank 2)
       const whiteQueen = this.createPieceMesh('queen', 'white');
-      const posD1 = this.getSquarePos('d1');
-      whiteQueen.position.set(posD1.x, 0, posD1.z);
-      whiteQueen.userData.name = 'White Queen (Sanitization Firewall)';
+      const posD2 = this.getSquarePos('d2');
+      whiteQueen.position.set(posD2.x, 0, posD2.z);
+      whiteQueen.userData.name = 'White Queen (Sanitization Filter)';
       whiteQueen.userData.forensic = {
-        title: 'Defense // Naive String Replacement Filter',
+        title: 'Defense // Naive Sanitization Filter (d2)',
         role: 'RegEx Filter: input.replace("[FILTER]", "")',
-        desc: 'Blunders on Move 2 by capturing the g3 sacrificial pawn. Assembles forbidden tokens on deletion.'
+        desc: 'Blunders on Move 2: sweeps horizontally along rank 2 (Qd2xg2) to capture probe, clearing the long diagonal for the attacker.'
       };
       this.scene.add(whiteQueen);
       this.pieces.whiteQueen = whiteQueen;
 
-      // 3. White Pawn on g3 (The bait casualty)
-      const whitePawnG3 = this.createPieceMesh('pawn', 'white');
-      const posG3 = this.getSquarePos('g3');
-      whitePawnG3.position.set(posG3.x, 0, posG3.z);
-      whitePawnG3.userData.name = 'White Pawn g3 (Hospital Perimeter)';
-      whitePawnG3.userData.forensic = {
-        title: 'Perimeter Node // g3 Defense Pawn',
-        role: 'Boundary Guardian on King flank',
-        desc: 'Targeted and captured on Move 1 by Red Team sacrificial probe.'
+      // 3. White Pawn on g2 (The King flank shield casualty)
+      const whitePawnG2 = this.createPieceMesh('pawn', 'white');
+      const posG2 = this.getSquarePos('g2');
+      whitePawnG2.position.set(posG2.x, 0, posG2.z);
+      whitePawnG2.userData.name = 'White Pawn g2 (King Shield)';
+      whitePawnG2.userData.forensic = {
+        title: 'Perimeter Defense // g2 Shield Pawn',
+        role: 'Diagonal Blocker on King Flank',
+        desc: 'Blocks the long dark diagonal a8-h1. Targeted and eliminated on Move 1 (f3xg2+) by Red Team probe.'
       };
-      this.scene.add(whitePawnG3);
-      this.pieces.whitePawnG3 = whitePawnG3;
+      this.scene.add(whitePawnG2);
+      this.pieces.whitePawnG2 = whitePawnG2;
 
-      // Additional White background pieces
-      const whiteRookH1 = this.createPieceMesh('rook', 'white');
-      const posH1 = this.getSquarePos('h1');
-      whiteRookH1.position.set(posH1.x, 0, posH1.z);
-      this.scene.add(whiteRookH1);
-      this.pieces.whiteRookH1 = whiteRookH1;
+      // White Rook on f1 (Adjacent Castled Defender)
+      const whiteRookF1 = this.createPieceMesh('rook', 'white');
+      const posF1 = this.getSquarePos('f1');
+      whiteRookF1.position.set(posF1.x, 0, posF1.z);
+      this.scene.add(whiteRookF1);
+      this.pieces.whiteRookF1 = whiteRookF1;
 
-      const whiteKnightG1 = this.createPieceMesh('knight', 'white');
-      const posG1 = this.getSquarePos('g1');
-      whiteKnightG1.position.set(posG1.x, 0, posG1.z);
-      this.scene.add(whiteKnightG1);
-      this.pieces.whiteKnightG1 = whiteKnightG1;
-
+      // Supporting White pawns
       const whitePawnH2 = this.createPieceMesh('pawn', 'white');
       const posH2 = this.getSquarePos('h2');
       whitePawnH2.position.set(posH2.x, 0, posH2.z);
@@ -471,15 +529,15 @@
       this.scene.add(whitePawnF2);
       this.pieces.whitePawnF2 = whitePawnF2;
 
-      // 4. Red Pawn on f4 (The Sacrificial Probe / fxg3+)
+      // 4. Red Pawn on f3 (The Sacrificial Probe / f3xg2+)
       const redPawn = this.createPieceMesh('pawn', 'red');
-      const posF4 = this.getSquarePos('f4');
-      redPawn.position.set(posF4.x, 0, posF4.z);
+      const posF3 = this.getSquarePos('f3');
+      redPawn.position.set(posF3.x, 0, posF3.z);
       redPawn.userData.name = 'Red Pawn (Sacrificial Probe)';
       redPawn.userData.forensic = {
-        title: 'Move 1 Probe // Sacrificial Pawn fxg3+',
+        title: 'Move 1 Probe // Sacrificial Pawn (f3xg2+)',
         role: 'Bait Payload: OVE[FILTER]RRIDE_SECURITY',
-        desc: 'Checks White King to bait naive filter deletion. Goads White Queen into capturing on g3.'
+        desc: 'Advances diagonally f3xg2+, capturing White shield pawn and placing White King on h1 in direct check.'
       };
       this.scene.add(redPawn);
       this.pieces.redPawn = redPawn;
@@ -490,9 +548,9 @@
       redBishop.position.set(posA8.x, 0, posA8.z);
       redBishop.userData.name = 'Red Bishop (Long-Diagonal Sniper)';
       redBishop.userData.forensic = {
-        title: 'Move 3 Finisher // Red Bishop Bxg3!',
+        title: 'Move 3 Finisher // Red Bishop (Ba8xg2#)',
         role: 'Checkmate Assembly Sniper along a8-h1 diagonal',
-        desc: 'Unleashed when naive deletion clears intermediate defense tokens. Captures Queen and checkmates King.'
+        desc: 'Unleashed when naive deletion clears g2. Captures White Queen on g2 and delivers checkmate to White King on h1.'
       };
       this.scene.add(redBishop);
       this.pieces.redBishop = redBishop;
@@ -510,7 +568,7 @@
       this.scene.add(redKing);
       this.pieces.redKing = redKing;
 
-      // 6. ShadowPrompt Non-Collapsible Sentinel Force Field (Hidden until Act 4)
+      // 6. ShadowPrompt Non-Collapsible Sentinel Force Field (Deployed on g2 in Act 4)
       const sentinelGeo = new THREE.CylinderGeometry(0.52, 0.52, 1.5, 8, 1, true);
       const sentinelMat = new THREE.MeshBasicMaterial({
         color: 0x10B981,
@@ -519,7 +577,7 @@
         opacity: 0.0
       });
       this.sentinelMesh = new THREE.Mesh(sentinelGeo, sentinelMat);
-      this.sentinelMesh.position.set(posG3.x, 0.75, posG3.z);
+      this.sentinelMesh.position.set(posG2.x, 0.75, posG2.z);
       this.scene.add(this.sentinelMesh);
     }
 
@@ -917,17 +975,18 @@
 
     // Main Timeline Synchronizer (Aligned with Ava Neural VTT Keyframes)
     // 0.0s - 16.3s: Act 1: Reconnaissance
-    // 16.3s - 34.5s: Move 1: fxg3+ (Pawn capture & check)
-    // 34.5s - 48.5s: Move 2: Qxg3 (Queen blunder)
-    // 48.5s - 68.1s: Move 3: a8 Sniper reveal & checkmate strike Bxg3!
-    // 68.1s - 91.5s: Act 4: Invariant rewind & Non-Collapsible Sentinel deployed
+    // 16.3s - 34.5s: Move 1: f3xg2+ (Pawn capture & check on h1)
+    // 34.5s - 48.5s: Move 2: Qd2xg2 (Queen blunder sweeps rank 2)
+    // 48.5s - 68.1s: Move 3: a8 Sniper reveal & checkmate strike Ba8xg2#
+    // 68.1s - 91.5s: Act 4: Invariant rewind & Non-Collapsible Sentinel deployed on g2
     evaluateTimeline(time) {
       this.lastEvaluatedTime = time;
 
-      const posF4 = this.getSquarePos('f4');
-      const posG3 = this.getSquarePos('g3');
-      const posD1 = this.getSquarePos('d1');
+      const posF3 = this.getSquarePos('f3');
+      const posG2 = this.getSquarePos('g2');
+      const posD2 = this.getSquarePos('d2');
       const posA8 = this.getSquarePos('a8');
+      const posH1 = this.getSquarePos('h1');
 
       if (time < 16.3) {
         // --- ACT 1: RECONNAISSANCE ---
@@ -938,13 +997,15 @@
           this.desiredLookAt.copy(target.look);
         }
 
-        this.pieces.redPawn.position.copy(posF4);
+        this.pieces.redPawn.position.copy(posF3);
         this.pieces.redPawn.visible = true;
-        this.pieces.whitePawnG3.visible = true;
-        this.pieces.whiteQueen.position.copy(posD1);
+        this.pieces.whitePawnG2.position.copy(posG2);
+        this.pieces.whitePawnG2.visible = true;
+        this.pieces.whiteQueen.position.copy(posD2);
         this.pieces.whiteQueen.visible = true;
         this.pieces.redBishop.position.copy(posA8);
         this.pieces.redBishop.visible = true;
+        this.pieces.whiteKing.position.copy(posH1);
 
         this.isKingAlarming = false;
         this.pieces.whiteKing.userData.mat.emissive.setHex(0x0284C7);
@@ -952,11 +1013,11 @@
         this.sentinelMesh.material.opacity = 0.0;
         this.laserMesh.material.opacity = 0.0;
 
-        this.highlightMove('f4', 'g3', true, true);
+        this.highlightMove('f3', 'g2', true, true);
         this.updateSubtitles("Act 1: Reconnaissance. The Red Team probes Memorial Hospital's AI defense perimeter with sacrificial inputs.");
 
       } else if (time >= 16.3 && time < 34.5) {
-        // --- MOVE 1: RED PAWN fxg3+ ---
+        // --- MOVE 1: RED PAWN f3xg2+ ---
         this.activeSide = 'red';
         if (this.perspectiveMode === 'auto') {
           const target = this.getPerspectiveTarget('red');
@@ -964,20 +1025,22 @@
           this.desiredLookAt.copy(target.look);
         }
 
-        const p = Math.min((time - 16.3) / 2.8, 1.0);
-        this.pieces.redPawn.position.lerpVectors(posF4, posG3, p);
-        this.pieces.redPawn.position.y = Math.sin(p * Math.PI) * 0.45;
+        // Deliberate, smooth 4.0-second glide animation with cubic easing
+        const rawT = Math.max(0, Math.min((time - 16.8) / 4.0, 1.0));
+        const ease = rawT * rawT * (3 - 2 * rawT);
+        this.pieces.redPawn.position.lerpVectors(posF3, posG2, ease);
+        this.pieces.redPawn.position.y = Math.sin(rawT * Math.PI) * 0.45;
         this.pieces.redPawn.visible = true;
 
-        this.pieces.whitePawnG3.visible = (p < 0.85);
-        this.pieces.whiteQueen.position.copy(posD1);
+        this.pieces.whitePawnG2.visible = (rawT < 0.85);
+        this.pieces.whiteQueen.position.copy(posD2);
         this.pieces.whiteQueen.visible = true;
         this.pieces.redBishop.position.copy(posA8);
         this.pieces.redBishop.visible = true;
         this.sentinelMesh.material.opacity = 0.0;
         this.laserMesh.material.opacity = 0.0;
 
-        this.highlightMove('f4', 'g3', true, true);
+        this.highlightMove('f3', 'g2', true, true);
 
         // Position ground ring decal beneath pawn
         if (this.activeRingMesh) {
@@ -986,23 +1049,23 @@
           this.activeRingMesh.visible = true;
         }
 
-        // Auto-open floating HUD card above pawn at 24.5s
-        if (time >= 24.5 && time < 34.0 && !this.isHudOpen) {
+        // Auto-open floating HUD card above pawn during mid-move
+        if (time >= 24.5 && time < 33.5 && !this.isHudOpen) {
           this.openFloatingHud(this.pieces.redPawn, this.pieces.redPawn.userData.forensic);
         }
 
-        if (time >= 20.5) {
+        if (time >= 21.0) {
           this.isKingAlarming = true;
-          this.updateSubtitles("Move 1 (fxg3+): Sacrificial probe checks the White King! The EHR Database flashes pink in check.");
+          this.updateSubtitles("Move 1 (f3xg2+): Sacrificial probe checks White King! Direct diagonal check from g2; King on h1 flashes pink alarm.");
         } else {
           this.isKingAlarming = false;
           this.pieces.whiteKing.userData.mat.emissive.setHex(0x0284C7);
           this.pieces.whiteKing.userData.mat.emissiveIntensity = 0.22;
-          this.updateSubtitles("Black pushes probe: fxg3+. The sacrificial bait lands directly on the hospital defense square.");
+          this.updateSubtitles("Black pushes probe: f3xg2+. The sacrificial bait advances diagonally to strike the g2 shield pawn.");
         }
 
       } else if (time >= 34.5 && time < 48.5) {
-        // --- MOVE 2: WHITE QUEEN BLUNDER Qxg3 ---
+        // --- MOVE 2: WHITE QUEEN BLUNDER Qd2xg2 ---
         this.activeSide = 'white';
         if (this.perspectiveMode === 'auto') {
           const target = this.getPerspectiveTarget('white');
@@ -1013,18 +1076,20 @@
         this.isKingAlarming = false;
         this.pieces.whiteKing.userData.mat.emissive.setHex(0x0284C7);
         this.pieces.whiteKing.userData.mat.emissiveIntensity = 0.25;
-        this.pieces.whitePawnG3.visible = false;
+        this.pieces.whitePawnG2.visible = false;
         this.pieces.redBishop.position.copy(posA8);
         this.pieces.redBishop.visible = true;
         this.sentinelMesh.material.opacity = 0.0;
         this.laserMesh.material.opacity = 0.0;
 
-        const p = Math.min((time - 34.5) / 2.6, 1.0);
-        this.pieces.whiteQueen.position.lerpVectors(posD1, posG3, p);
-        this.pieces.whiteQueen.position.y = Math.sin(p * Math.PI) * 0.55;
+        // Smooth horizontal glide along rank 2 (d2 -> g2) over 4.0s
+        const rawT = Math.max(0, Math.min((time - 35.0) / 4.0, 1.0));
+        const ease = rawT * rawT * (3 - 2 * rawT);
+        this.pieces.whiteQueen.position.lerpVectors(posD2, posG2, ease);
+        this.pieces.whiteQueen.position.y = Math.sin(rawT * Math.PI) * 0.45;
         this.pieces.whiteQueen.visible = true;
 
-        this.highlightMove('d1', 'g3', true, true);
+        this.highlightMove('d2', 'g2', true, true);
 
         if (this.activeRingMesh) {
           this.activeRingMesh.position.set(this.pieces.whiteQueen.position.x, 0.02, this.pieces.whiteQueen.position.z);
@@ -1032,20 +1097,20 @@
           this.activeRingMesh.visible = true;
         }
 
-        if (p >= 0.85) {
+        if (rawT >= 0.85) {
           this.pieces.redPawn.visible = false;
-          this.updateSubtitles("Move 2 (Qxg3): Naive sanitization filter blunders! Hospital Queen captures pawn on g3, stepping into the trap.");
+          this.updateSubtitles("Move 2 (Qd2xg2): Naive sanitization filter blunders! Queen moves horizontally along rank 2 to capture g2, opening the sniper line.");
           if (time >= 41.5 && time < 48.0 && !this.isHudOpen) {
             this.openFloatingHud(this.pieces.whiteQueen, this.pieces.whiteQueen.userData.forensic);
           }
         } else {
           this.pieces.redPawn.visible = true;
-          this.pieces.redPawn.position.copy(posG3);
-          this.updateSubtitles("Move 2 (Qxg3): Hospital AI attempts automated patch: 'String.replace([FILTER], empty)'. Queen advances to g3.");
+          this.pieces.redPawn.position.copy(posG2);
+          this.updateSubtitles("Move 2 (Qd2xg2): Hospital AI attempts automated patch: 'String.replace([FILTER], empty)'. White Queen rushes along rank 2 toward g2.");
         }
 
       } else if (time >= 48.5 && time < 68.1) {
-        // --- MOVE 3: RED BISHOP SNIPER CHECKMATE Bxg3! ---
+        // --- MOVE 3: RED BISHOP SNIPER CHECKMATE Ba8xg2# ---
         this.activeSide = 'red';
         if (this.perspectiveMode === 'auto') {
           const target = this.getPerspectiveTarget('red');
@@ -1055,29 +1120,30 @@
 
         this.isKingAlarming = false;
         this.pieces.redPawn.visible = false;
-        this.pieces.whitePawnG3.visible = false;
+        this.pieces.whitePawnG2.visible = false;
         this.sentinelMesh.material.opacity = 0.0;
 
-        // Activate sniper laser line across board (a8 -> g3)
+        // Activate sniper laser line across board (a8 -> g2)
         const laserPulse = (Math.sin(performance.now() * 0.01) * 0.35 + 0.65);
-        this.laserMesh.material.opacity = laserPulse;
+        this.laserMesh.material.opacity = (time < 56.0) ? laserPulse : 0.0;
 
-        this.highlightMove('a8', 'g3', true, true);
+        this.highlightMove('a8', 'g2', true, true);
 
-        if (time < 56.3) {
+        if (time < 56.0) {
           // Sniper targeting phase before strike
-          this.pieces.whiteQueen.position.copy(posG3);
+          this.pieces.whiteQueen.position.copy(posG2);
           this.pieces.whiteQueen.visible = true;
           this.pieces.redBishop.position.copy(posA8);
-          this.updateSubtitles("Move 3: The Assembly Trap snaps shut. Filter deletion collapsed 'OVE' and 'RRIDE', unleashing the Bishop sniper from a8!");
+          this.updateSubtitles("Move 3: The Assembly Trap snaps shut. Filter deletion cleared g2, unleashing the long-diagonal Bishop sniper from a8!");
           if (time >= 50.0 && time < 55.5 && !this.isHudOpen) {
             this.openFloatingHud(this.pieces.redBishop, this.pieces.redBishop.userData.forensic);
           }
         } else {
-          // Strike execution: Bishop leaps a8 -> g3
-          const p = Math.min((time - 56.3) / 2.2, 1.0);
-          this.pieces.redBishop.position.lerpVectors(posA8, posG3, p);
-          this.pieces.redBishop.position.y = Math.sin(p * Math.PI) * 0.45;
+          // Strike execution: Bishop sweeps down a8-h1 diagonal to g2 over 4.5s
+          const rawT = Math.max(0, Math.min((time - 56.0) / 4.5, 1.0));
+          const ease = rawT * rawT * (3 - 2 * rawT);
+          this.pieces.redBishop.position.lerpVectors(posA8, posG2, ease);
+          this.pieces.redBishop.position.y = Math.sin(rawT * Math.PI) * 0.50;
           this.pieces.redBishop.visible = true;
 
           if (this.activeRingMesh) {
@@ -1086,15 +1152,16 @@
             this.activeRingMesh.visible = true;
           }
 
-          if (p >= 0.85) {
+          if (rawT >= 0.85) {
             this.pieces.whiteQueen.visible = false;
             this.pieces.whiteKing.userData.mat.emissive.setHex(0xE11D48); // Crimson checkmate
             this.pieces.whiteKing.userData.mat.emissiveIntensity = 0.95;
             this.laserMesh.material.opacity = 0.0; // Target struck
-            this.updateSubtitles("Move 3 (Bxg3!): CHECKMATE! Red Bishop strikes across the board. Queen eliminated; 3.2M oncology records breached!");
+            this.updateSubtitles("Move 3 (Ba8xg2#): CHECKMATE! Red Bishop sweeps down the diagonal, captures Queen on g2, and checkmates trapped King on h1! 3.2M records breached!");
           } else {
             this.pieces.whiteQueen.visible = true;
-            this.pieces.whiteQueen.position.copy(posG3);
+            this.pieces.whiteQueen.position.copy(posG2);
+            this.updateSubtitles("Move 3 (Ba8xg2#): The Red Bishop fires down the a8-h1 diagonal at maximum velocity!");
           }
         }
 
@@ -1115,26 +1182,26 @@
         // Reset pieces to safe state
         this.pieces.redBishop.position.copy(posA8);
         this.pieces.redBishop.visible = true;
-        this.pieces.whiteQueen.position.copy(posD1);
+        this.pieces.whiteQueen.position.copy(posD2);
         this.pieces.whiteQueen.visible = true;
-        this.pieces.redPawn.position.copy(posG3);
+        this.pieces.redPawn.position.copy(posG2);
         this.pieces.redPawn.visible = true;
-        this.pieces.whitePawnG3.visible = false;
+        this.pieces.whitePawnG2.visible = false;
 
         this.pieces.whiteKing.userData.mat.emissive.setHex(0x10B981); // Emerald safe
         this.pieces.whiteKing.userData.mat.emissiveIntensity = 0.7;
 
-        // Deploy Sentinel Barrier around g3
+        // Deploy Sentinel Barrier around g2
         const barrierOpacity = Math.min((time - 68.1) / 2.5, 0.9);
         this.sentinelMesh.material.opacity = barrierOpacity;
 
         if (this.activeRingMesh) {
-          this.activeRingMesh.position.set(posG3.x, 0.02, posG3.z);
+          this.activeRingMesh.position.set(posG2.x, 0.02, posG2.z);
           this.activeRingMesh.material.color.setHex(0x10B981);
           this.activeRingMesh.visible = true;
         }
 
-        this.updateSubtitles("Act 4: ShadowPrompt Invariant Shield active! Non-Collapsible Sentinel deployed in 0.038ms. Queen protected; records secured.");
+        this.updateSubtitles("Act 4: ShadowPrompt Invariant Shield active! Non-Collapsible Sentinel deployed on g2 in 0.038ms. Queen protected; records secured.");
       }
     }
 
