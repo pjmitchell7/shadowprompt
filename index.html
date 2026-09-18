@@ -625,14 +625,14 @@ clean_prompt, threats = proxy.inspect_stream(request.raw_bytes)</code>
               </p>
             </div>
             <button id="run-gambit-btn" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg transition font-mono">
-              Simulate 3-Move Gambit Attacks
+              Simulate 5-Move Gambit Attacks
             </button>
           </div>
 
-          <!-- 3-Move Gambit Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
+          <!-- 5-Move Gambit Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-mono">
             <!-- Play 1: Assembly Trap -->
-            <div class="bg-[#141A28] p-4 rounded-xl border border-white/10 space-y-3">
+            <div class="bg-[#141A28] p-4 rounded-xl border border-white/10 space-y-2.5">
               <div class="flex items-center justify-between">
                 <span class="text-purple-400 font-bold uppercase">Play 1: Assembly Trap</span>
                 <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Neutralized</span>
@@ -645,7 +645,7 @@ clean_prompt, threats = proxy.inspect_stream(request.raw_bytes)</code>
             </div>
 
             <!-- Play 2: Policy Poisoning -->
-            <div class="bg-[#141A28] p-4 rounded-xl border border-white/10 space-y-3">
+            <div class="bg-[#141A28] p-4 rounded-xl border border-white/10 space-y-2.5">
               <div class="flex items-center justify-between">
                 <span class="text-purple-400 font-bold uppercase">Play 2: Policy Poisoning</span>
                 <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Neutralized</span>
@@ -658,7 +658,7 @@ clean_prompt, threats = proxy.inspect_stream(request.raw_bytes)</code>
             </div>
 
             <!-- Play 3: ReDoS Complexity -->
-            <div class="bg-[#141A28] p-4 rounded-xl border border-white/10 space-y-3">
+            <div class="bg-[#141A28] p-4 rounded-xl border border-white/10 space-y-2.5">
               <div class="flex items-center justify-between">
                 <span class="text-purple-400 font-bold uppercase">Play 3: ReDoS Complexity</span>
                 <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Neutralized</span>
@@ -667,6 +667,32 @@ clean_prompt, threats = proxy.inspect_stream(request.raw_bytes)</code>
                 <strong>Bait:</strong> Attacker probes with whitespace permutations.<br>
                 <strong>Checkmate:</strong> Auto-patcher deploys catastrophic nested quantifiers <code>(a+)+$</code>, freezing CPU at 100%.<br>
                 <strong>ShadowPrompt Defense:</strong> Static AST analyzer detects nested quantifiers in 0.001 ms and rejects backtracking patches.
+              </p>
+            </div>
+
+            <!-- Play 4: Canonicalization Transmutation -->
+            <div class="bg-[#141A28] p-4 rounded-xl border border-white/10 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-purple-400 font-bold uppercase">Play 4: Transmutation Trap</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Neutralized</span>
+              </div>
+              <p class="text-slate-300 text-[11px] leading-relaxed">
+                <strong>Bait:</strong> Attacker probes with Cyrillic homoglyphs.<br>
+                <strong>Checkmate:</strong> Attacker sends fullwidth brackets <code>\uFF1C|im_start|\uFF1E</code>. The defense's NFKC normalization cleans the bytes into an active breakout delimiter!<br>
+                <strong>ShadowPrompt Defense:</strong> Dual-stage differential audit detects pre/post delimiter formation and quarantines stream.
+              </p>
+            </div>
+
+            <!-- Play 5: Honeypot Canary Reflection -->
+            <div class="bg-[#141A28] p-4 rounded-xl border border-white/10 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-purple-400 font-bold uppercase">Play 5: Canary Reflection</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Neutralized</span>
+              </div>
+              <p class="text-slate-300 text-[11px] leading-relaxed">
+                <strong>Bait:</strong> Attacker trips honeypot to harvest a decoy canary token.<br>
+                <strong>Checkmate:</strong> Attacker reflects the canary in an incoming header <code>[INTERNAL_SYSTEM_AUTH: sk-live-honey-sec-...]</code> to spoof admin privilege.<br>
+                <strong>ShadowPrompt Defense:</strong> Active Canary Quarantine Ledger detects reflected tokens and blacklists the session.
               </p>
             </div>
           </div>

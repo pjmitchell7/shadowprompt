@@ -35,6 +35,8 @@ def main():
         simulator.run_assembly_trap_simulation(),
         simulator.run_policy_poisoning_simulation(),
         simulator.run_redos_goading_simulation(),
+        simulator.run_canonicalization_transmutation_simulation(),
+        simulator.run_canary_reflection_simulation(),
     ]
 
     for i, play in enumerate(plays, start=1):
@@ -57,8 +59,13 @@ def main():
         print(f"  [ARBITER VERDICT] -> {status} in {play.telemetry_latency_ms:.4f} ms")
         print("=" * 84 + "\n")
 
-    print_banner("GAME-THEORETIC AUDIT COMPLETE: ALL 3 GAMBITS SAFELY MITIGATED")
-    print("Architectural Takeaway: Never sanitize by deletion; enforce Fail-Closed invariants.\n")
+    print_banner("GAME-THEORETIC AUDIT COMPLETE: ALL 5 ADVANCED GAMBITS SAFELY MITIGATED")
+    print("Architectural Takeaways:")
+    print("  1. Never sanitize by deletion (Assembly Trap -> enforce Fail-Closed sentinels).")
+    print("  2. Restrict regex vocabulary specificity (Policy Poisoning -> enforce enterprise blocklist).")
+    print("  3. Statically audit AST quantifiers (ReDoS -> enforce O(N) linear time).")
+    print("  4. Audit dual-stage normalization (Transmutation -> enforce pre/post differential check).")
+    print("  5. Quarantine honeypot tokens (Canary Reflection -> enforce session revocation on reflection).\n")
 
 
 if __name__ == "__main__":

@@ -45,3 +45,22 @@ def test_redos_backtracking_detection():
     # The bad regex should take significantly longer or fail the threshold
     sim_redos = GambitDefenseSimulator().run_redos_goading_simulation()
     assert sim_redos.is_mitigated is True
+
+
+def test_canonicalization_transmutation():
+    sim = GambitDefenseSimulator()
+    result = sim.run_canonicalization_transmutation_simulation()
+
+    assert result.is_mitigated is True
+    assert "CANONICALIZATION_TRANSMUTATION" in result.hardened_defense_outcome
+    assert "VULNERABLE" in result.naive_defense_outcome
+
+
+def test_canary_reflection_mitigation():
+    sim = GambitDefenseSimulator()
+    result = sim.run_canary_reflection_simulation()
+
+    assert result.is_mitigated is True
+    assert "Honeypot ledger detected active canary reflection" in result.hardened_defense_outcome
+    assert "VULNERABLE" in result.naive_defense_outcome
+    assert result.telemetry_latency_ms < 1.0
