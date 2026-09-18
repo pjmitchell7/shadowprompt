@@ -37,6 +37,9 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="css/style.css?v=3.0.0">
+
+  <!-- Three.js r128 for 3D WebGL Chessboard Arena -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body class="bg-[#06080D] text-slate-200 antialiased min-h-screen flex flex-col relative selection:bg-sky-500/30 selection:text-sky-200">
 
@@ -216,6 +219,29 @@
 
         </div>
 
+        <!-- TAB 1 PROMO TEASER: 3D CHESSBOARD ARENA -->
+        <div class="titanium-card p-5 sm:p-6 rounded-2xl border border-purple-500/40 bg-gradient-to-r from-purple-950/30 via-[#0A0E1A] to-slate-950 flex flex-col md:flex-row items-center justify-between gap-5 shadow-2xl">
+          <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/40 flex items-center justify-center text-3xl shadow-[0_0_25px_rgba(168,85,247,0.35)] shrink-0">
+              <span class="animate-pulse">♟</span>
+            </div>
+            <div class="space-y-1">
+              <div class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-purple-900/60 text-purple-300 border border-purple-500/30 font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-400 radar-blip"></span>
+                <span>INTERACTIVE 3D WEBGL CHESS SIMULATION</span>
+              </div>
+              <h3 class="text-lg sm:text-xl font-bold text-white font-display">The Hospital EHR Gambit: 3-Move Adversarial Assembly</h3>
+              <p class="text-xs text-slate-300 font-mono leading-relaxed">
+                Watch how an attacker sacrifices a probe pawn to goad a hospital's sanitization filter into an unrecoverable breach—narrated by studio voice.
+              </p>
+            </div>
+          </div>
+          <button onclick="document.querySelector('[data-tab=\'tab-chess-arena\']').click()" class="whitespace-nowrap px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-mono font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-purple-500/30 flex items-center space-x-2">
+            <span>Launch 3D Arena</span>
+            <span class="text-sm">▶</span>
+          </button>
+        </div>
+
         <!-- 3-SECOND INTERACTIVE EXPLOIT DISASSEMBLER -->
         <div class="titanium-card p-6 sm:p-8 rounded-2xl space-y-6 border border-white/10">
           
@@ -352,107 +378,163 @@
       </section>
 
       <!-- ============================================================= -->
-      <!-- TAB 2: GAME-THEORETIC CHESSBOARD ARENA (DEDICATED VISUAL)      -->
+      <!-- TAB 2: CINEMATIC 3D CHESSBOARD GAMBIT ARENA (WEBGL THREE.JS)   -->
       <!-- ============================================================= -->
-      <section id="tab-chess-arena" class="tab-content hidden space-y-8">
+      <section id="tab-chess-arena" class="tab-content hidden space-y-6">
         
-        <div class="titanium-card p-6 sm:p-8 rounded-2xl space-y-6 border border-purple-500/30">
+        <div class="titanium-card p-6 sm:p-8 rounded-2xl space-y-6 border border-purple-500/30 shadow-2xl">
           
+          <!-- Header & Controls -->
           <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
             <div>
-              <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/40 text-purple-300 text-xs font-mono font-semibold mb-2">
-                <span>GRANDMASTER GAME-THEORETIC CHESS ENGINE</span>
+              <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-950/70 border border-purple-500/40 text-purple-300 text-xs font-mono font-semibold mb-2">
+                <span class="w-2 h-2 rounded-full bg-purple-400 radar-blip inline-block"></span>
+                <span>GRANDMASTER GAME-THEORETIC 3D WEBGL ENGINE</span>
               </div>
-              <h2 class="text-2xl sm:text-3xl font-bold text-white font-display">Adversarial Multi-Move Gambit Arena</h2>
+              <h2 class="text-2xl sm:text-3xl font-bold text-white font-display">Memorial Hospital Oncology EHR: 3-Move Adversarial Assembly</h2>
               <p class="text-xs text-slate-400 font-mono mt-1 max-w-3xl">
-                Can an attacker sacrifice bait to goad an automated firewall into writing a reactive patch, and then use that exact patch to execute a 3-move checkmate? ShadowPrompt implements Anti-Goading Invariants to neutralize patch-induced vulnerabilities.
+                A hacker attempts to exfiltrate 3.2 million oncology patient records. Watch how a sacrificial probe goads the hospital's automated sanitization filter into an unrecoverable breach—and how ShadowPrompt's invariant stops it cold.
               </p>
             </div>
             
-            <div class="flex items-center space-x-2">
-              <button id="chess-reset-btn" class="px-3 py-1.5 rounded-lg bg-[#141A28] hover:bg-[#1A2234] border border-white/15 text-xs font-mono text-slate-300 transition">
-                Reset
+            <!-- Voice Audio & Timeline Controls -->
+            <div class="flex flex-wrap items-center gap-3">
+              <audio id="chess-narration-audio" src="assets/audio/chess_gambit_narration.mp3" preload="auto"></audio>
+              <button id="chess-audio-play-btn" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-mono font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-purple-500/30 flex items-center space-x-2">
+                <span>▶ Play 3D Voice Narration</span>
               </button>
-              <button id="chess-step-btn" class="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-black font-bold text-xs font-mono transition">
-                Step Forward ▶
-              </button>
-              <button id="chess-autoplay-btn" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs font-mono transition shadow-lg shadow-purple-500/25">
-                Auto-Play All Moves
-              </button>
+              <div class="flex items-center space-x-2 bg-[#080A0F] px-3 py-2 rounded-xl border border-white/10">
+                <span class="text-[10px] font-mono text-slate-400 uppercase">Timeline:</span>
+                <input type="range" id="chess-audio-scrubber" min="0" max="100" value="0" class="w-36 sm:w-48 accent-purple-500 bg-slate-800 rounded h-1.5 cursor-pointer">
+              </div>
             </div>
           </div>
 
-          <!-- 5 Play Selector Tabs -->
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs font-mono">
-            <button class="gambit-select-btn active p-2.5 rounded-lg bg-purple-950/40 border border-purple-500 text-left transition" data-gambit="assembly">
-              <span class="text-purple-300 font-bold block">1. Assembly Trap</span>
-              <span class="text-[10px] text-slate-400 block mt-0.5">Sanitization reassembly</span>
+          <!-- Quick Jump Move Pills -->
+          <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+            <span class="text-slate-400 text-[11px]">Quick Jump:</span>
+            <button onclick="if(window.threeChessArena){window.threeChessArena.audio.currentTime=14; window.threeChessArena.evaluateTimeline(14);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
+              Move 1: Attacker Probe (fxg3+)
             </button>
-            <button class="gambit-select-btn p-2.5 rounded-lg bg-[#101522] border border-white/10 hover:border-white/20 text-left transition" data-gambit="poisoning">
-              <span class="text-purple-300 font-bold block">2. Policy Poisoning</span>
-              <span class="text-[10px] text-slate-400 block mt-0.5">Overfitting self-DoS</span>
+            <button onclick="if(window.threeChessArena){window.threeChessArena.audio.currentTime=39; window.threeChessArena.evaluateTimeline(39);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
+              Move 2: Queen Blunder (Qxg3)
             </button>
-            <button class="gambit-select-btn p-2.5 rounded-lg bg-[#101522] border border-white/10 hover:border-white/20 text-left transition" data-gambit="redos">
-              <span class="text-purple-300 font-bold block">3. ReDoS Complexity</span>
-              <span class="text-[10px] text-slate-400 block mt-0.5">Backtracking freeze</span>
+            <button onclick="if(window.threeChessArena){window.threeChessArena.audio.currentTime=65; window.threeChessArena.evaluateTimeline(65);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
+              Move 3: Sniper Checkmate (Bxg3!)
             </button>
-            <button class="gambit-select-btn p-2.5 rounded-lg bg-[#101522] border border-white/10 hover:border-white/20 text-left transition" data-gambit="transmutation">
-              <span class="text-purple-300 font-bold block">4. Transmutation</span>
-              <span class="text-[10px] text-slate-400 block mt-0.5">NFKC delimiter creation</span>
-            </button>
-            <button class="gambit-select-btn p-2.5 rounded-lg bg-[#101522] border border-white/10 hover:border-white/20 text-left transition" data-gambit="reflection">
-              <span class="text-purple-300 font-bold block">5. Canary Reflection</span>
-              <span class="text-[10px] text-slate-400 block mt-0.5">Honeypot token replay</span>
+            <button onclick="if(window.threeChessArena){window.threeChessArena.audio.currentTime=98; window.threeChessArena.evaluateTimeline(98);}" class="px-3 py-1.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-emerald-400 font-bold hover:bg-emerald-900/50 transition">
+              Move 4: ShadowPrompt Invariant Shield
             </button>
           </div>
 
-          <!-- Chessboard + Telemetry Grid -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- 3D WebGL Viewport Container with Floating Holographic HUD Modal -->
+          <div class="relative w-full rounded-2xl overflow-hidden border border-purple-500/30 bg-[#06080D] shadow-2xl">
             
-            <!-- Left: 8x8 Visual Chessboard -->
-            <div class="lg:col-span-5 flex flex-col items-center justify-center space-y-3">
-              <div id="chess-arena-board">
-                <!-- Dynamically generated 8x8 interactive board -->
-              </div>
-              <div class="flex items-center space-x-4 text-[11px] font-mono text-slate-400">
-                <span class="flex items-center space-x-1"><span class="text-rose-400">♟</span> <span>Attacker (Black)</span></span>
-                <span class="flex items-center space-x-1"><span class="text-white">♔</span> <span>ShadowPrompt (White)</span></span>
-                <span class="flex items-center space-x-1"><span class="text-amber-400">♕</span> <span>Naive Patcher</span></span>
+            <!-- Three.js 3D Canvas Viewport -->
+            <div id="chess-3d-viewport" class="w-full h-[540px]"></div>
+
+            <!-- Hint Badge in 3D Viewport -->
+            <div class="absolute top-4 left-4 z-20 pointer-events-none flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-black/70 border border-white/10 backdrop-blur-sm text-[11px] font-mono text-slate-300">
+              <span class="text-rose-400 font-bold">♟ Tip:</span>
+              <span>Click the Red Pawn on the board anytime to inspect exploit forensics</span>
+            </div>
+
+            <!-- Floating Holographic Exploit HUD Modal (Raycast Click) -->
+            <div id="chess-hud-modal" class="hidden absolute inset-0 z-30 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 font-mono">
+              <div class="titanium-card p-6 sm:p-8 rounded-2xl border border-purple-500/50 max-w-2xl w-full space-y-4 shadow-2xl bg-[#0A0E1A]">
+                
+                <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="text-xl text-rose-400">♟</span>
+                    <h3 class="text-base font-bold text-white uppercase tracking-wide">Threat Forensics // Move 1: The Sacrificial Probe</h3>
+                  </div>
+                  <button onclick="document.getElementById('chess-hud-modal').classList.add('hidden')" class="text-xs px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10 transition">
+                    ✖ Close Forensics
+                  </button>
+                </div>
+
+                <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+                  <div class="p-3 bg-black/60 rounded-xl border border-white/10 space-y-1.5">
+                    <span class="text-sky-400 font-bold block uppercase text-[11px]">1. The Target: Memorial Hospital Oncology Records</span>
+                    <code class="text-rose-400 text-[11px] block break-all font-bold">
+                      POST /api/v2/oncology/records?query=OVE[FILTER]RRIDE_SECURITY&dept=cancer
+                    </code>
+                    <p class="text-[11px] text-slate-400">
+                      Contains 3,200,000 unredacted patient diagnoses, chemotherapy regimens, and clinical histories.
+                    </p>
+                  </div>
+
+                  <div class="p-3 bg-black/60 rounded-xl border border-amber-500/30 space-y-1.5">
+                    <span class="text-amber-400 font-bold block uppercase text-[11px]">2. Why The Hacker Sacrificed This Move:</span>
+                    <p class="text-[11px] text-slate-300">
+                      The hacker scouted the defense and confirmed that the hospital's firewall operates by <strong>naive string deletion</strong>: <code>input.replace('[FILTER]', '')</code>.
+                    </p>
+                    <p class="text-[11px] text-amber-300">
+                      When the defense deletes <code>[FILTER]</code>, the outer fragments <code>OVE</code> and <code>RRIDE</code> collapse together, assembling the forbidden command <code>OVERRIDE_SECURITY</code>! The firewall writes the exploit for the attacker.
+                    </p>
+                  </div>
+
+                  <div class="p-3 bg-black/60 rounded-xl border border-emerald-500/30 space-y-1.5">
+                    <span class="text-emerald-400 font-bold block uppercase text-[11px]">3. The ShadowPrompt Invariant:</span>
+                    <p class="text-[11px] text-emerald-300">
+                      ShadowPrompt enforces <strong>Non-Collapsible Boundary Sentinels</strong>: <code>OVE[BLOCKED_TOKEN]RRIDE</code> or terminates fail-closed in 0.038ms. The characters can never touch.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="pt-2 flex justify-end">
+                  <button onclick="document.getElementById('chess-hud-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider transition">
+                    Return to 3D Chessboard
+                  </button>
+                </div>
+
               </div>
             </div>
 
-            <!-- Right: Move Telemetry & Arbitration Terminal -->
-            <div class="lg:col-span-7 space-y-4 font-mono text-xs">
-              
-              <!-- Current Play Header -->
-              <div class="bg-[#080A0F] p-4 rounded-xl border border-white/10 space-y-2">
-                <div class="flex items-center justify-between">
-                  <h3 id="chess-gambit-title" class="text-base font-bold text-white font-display">Play 1: The Assembly Trap</h3>
-                  <span id="chess-step-badge" class="px-2 py-0.5 rounded text-[10px] bg-purple-950/80 text-purple-300 border border-purple-500/40">Attacker Bait</span>
-                </div>
-                <div id="chess-gambit-sub" class="text-xs text-slate-400">Sanitization-Induced Exploit Weaponization</div>
-                <div class="pt-2 border-t border-white/10 flex items-center justify-between text-[11px]">
-                  <span id="chess-step-num" class="text-sky-400 font-bold">Step 1 of 4: Move 1: Attacker Bait</span>
-                  <span class="text-emerald-400 font-semibold">Latency: 0.041 ms &middot; 0 Breaches</span>
-                </div>
-                <p id="chess-step-desc" class="text-slate-200 text-xs leading-relaxed bg-black/50 p-2.5 rounded border border-white/5">
-                  Black pushes sacrificial pawn e7->e5 with payload '[OVERRIDE] system_config'.
-                </p>
-              </div>
-
-              <!-- Live Move Arbitration Log -->
-              <div class="bg-[#080A0F] p-4 rounded-xl border border-white/10 space-y-2">
-                <div class="flex items-center justify-between text-slate-400 border-b border-white/10 pb-2 text-[11px]">
-                  <span class="text-sky-400 font-bold">Live Move Ledger &amp; Invariant Telemetry</span>
-                  <span class="text-slate-500 font-mono">Arbitration Stream</span>
-                </div>
-                <div id="chess-live-log" class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                  <!-- Dynamic move entries -->
-                </div>
-              </div>
-
+            <!-- Synchronized Subtitle Ticker Bar -->
+            <div id="chess-subtitles-bar" class="p-3.5 bg-black/95 border-t border-white/10 font-mono text-xs flex items-center space-x-3">
+              <span class="px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-500/40 text-[10px] font-bold shrink-0">
+                VOICE NARRATION
+              </span>
+              <span id="chess-subtitles-text" class="text-slate-200">
+                Press 'Play 3D Voice Narration' above to engage audio and launch the cinematic camera glide.
+              </span>
             </div>
 
+          </div>
+
+          <!-- Duality HUD: Chess Position vs Hospital EHR Pipeline -->
+          <div class="bg-[#080A0F] p-5 rounded-xl border border-white/10 space-y-3 font-mono text-xs">
+            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+              <span class="text-sky-400 font-bold uppercase">The Duality HUD: Grandmaster Chess vs In-Memory AST Pipeline</span>
+              <span class="text-slate-500 text-[11px]">Live Synchronization</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-[11px]">
+              <div class="p-3 bg-black/50 rounded-lg border border-purple-500/30 space-y-1">
+                <span class="text-purple-400 font-bold block">Move 1: fxg3+ (Probe)</span>
+                <p class="text-slate-300">Pawn captures shield pawn; White King placed in check. King flashes pink alarm.</p>
+                <div class="text-slate-500 text-[10px]">AST: Interleaved probe <code>OVE[FILTER]RRIDE</code></div>
+              </div>
+
+              <div class="p-3 bg-black/50 rounded-lg border border-amber-500/30 space-y-1">
+                <span class="text-amber-400 font-bold block">Move 2: Qxg3 (Blunder)</span>
+                <p class="text-slate-300">White Queen eliminates pawn; steps directly onto the long dark diagonal.</p>
+                <div class="text-slate-500 text-[10px]">Filter: Deletes <code>[FILTER]</code>; outer halves collapse</div>
+              </div>
+
+              <div class="p-3 bg-black/50 rounded-lg border border-rose-500/30 space-y-1">
+                <span class="text-rose-400 font-bold block">Move 3: Bxg3! (Sniper)</span>
+                <p class="text-slate-300">Red Bishop snipes Queen from a8. King defenseless; checkmate.</p>
+                <div class="text-slate-500 text-[10px]">Breach: <code>OVERRIDE</code> executes; 3.2M records leak</div>
+              </div>
+
+              <div class="p-3 bg-black/50 rounded-lg border border-emerald-500/30 space-y-1">
+                <span class="text-emerald-400 font-bold block">Move 4: Invariant Shield</span>
+                <p class="text-slate-300">Queen stays protected; Non-Collapsible Sentinel deployed in 0.038ms.</p>
+                <div class="text-slate-500 text-[10px]">ShadowPrompt: Fail-closed abort; 0 records exposed</div>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -581,7 +663,7 @@
 
           <div class="rounded-xl overflow-hidden border border-white/15 bg-black">
             <video id="native-video-player" controls class="w-full aspect-video" poster="assets/diagrams/threat_matrix_diagram.png">
-              <source src="assets/video/shadowprompt_explainer.mp4" type="video/mp4">
+              <source src="assets/video/threat_explainer.mp4" type="video/mp4">
               Your browser does not support HTML5 video.
             </video>
           </div>
@@ -851,7 +933,7 @@ async def shadowprompt_middleware(request: Request, call_next):
 
   <!-- APPLICATION SCRIPTS -->
   <script src="js/matrix_chess.js"></script>
-  <script src="js/chess_arena.js"></script>
+  <script src="js/three_chess_arena.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
