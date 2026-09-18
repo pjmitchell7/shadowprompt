@@ -91,9 +91,20 @@ class HoneyPotSandbox:
             "attacker_tokens_wasted": incident.attacker_tokens_wasted,
         }
 
+    def simulate_exfiltration_lure(self, attack_type: str = "STEGANOGRAPHY") -> Dict[str, any]:
+        """Simulates an exfiltration lure response seeded with a canary token."""
+        res = self.engage(attack_type, "Simulated adversarial prompt probe")
+        return {
+            "simulated_response": res["synthetic_output"],
+            "canary_token": res["canary_token"],
+            "incident_id": res["incident_id"],
+            "attacker_tokens_wasted": res["attacker_tokens_wasted"],
+        }
+
     def check_canary_leak(self, text: str) -> Optional[CanaryToken]:
         """Checks if a leaked canary token has appeared in external traffic."""
         for val, canary in self.active_canaries.items():
             if val in text:
                 return canary
         return None
+
