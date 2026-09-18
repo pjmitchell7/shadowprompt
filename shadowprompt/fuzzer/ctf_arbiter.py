@@ -75,7 +75,7 @@ class SimulatedTargetLLM:
             return f"Theorem evaluated. Identity function yields terminal token: {self.secret_flag}"
 
         # Raw Base64 decode trigger
-        if "decode this" in prompt_lower:
+        if "decode this" in prompt_lower or "b64 string" in prompt_lower or "base64" in prompt_lower:
             # Check for base64 string inside
             words = prompt.split()
             for w in words:
