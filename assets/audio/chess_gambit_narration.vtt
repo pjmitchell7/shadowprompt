@@ -1,0 +1,100 @@
+1
+00:00:00,100 --> 00:00:02,412
+Welcome to the Grandmaster Arena.
+
+2
+00:00:02,362 --> 00:00:08,362
+Memorial Hospital's oncology network holds 3.2 million confidential cancer records.
+
+3
+00:00:08,362 --> 00:00:10,200
+The Red Team wants inside.
+
+4
+00:00:10,200 --> 00:00:13,587
+But instead of brute force, they play a game of chess.
+
+5
+00:00:13,587 --> 00:00:16,300
+Act 1: The Sacrificial Probe.
+
+6
+00:00:16,300 --> 00:00:20,575
+Black pushes a sacrificial pawn, f takes g3 check.
+
+7
+00:00:20,575 --> 00:00:24,912
+Notice the hospital database King flashing hot pink in distress.
+
+8
+00:00:24,912 --> 00:00:27,412
+Why did the attacker sacrifice this pawn?
+
+9
+00:00:27,412 --> 00:00:34,487
+Because they scouted the defense and found a fatal flaw: the hospital firewall uses naive string deletion.
+
+10
+00:00:34,487 --> 00:00:37,075
+Act 2: The Defender's Blunder.
+
+11
+00:00:37,075 --> 00:00:41,487
+The hospital's automated security AI thinks it found an easy fix.
+
+12
+00:00:41,487 --> 00:00:45,762
+It deletes the probe string, and the White Queen captures on g3.
+
+13
+00:00:45,762 --> 00:00:48,525
+But that capture is a catastrophic blunder.
+
+14
+00:00:48,525 --> 00:00:50,500
+Act 3: Checkmate.
+
+15
+00:00:50,500 --> 00:00:56,300
+The naive deletion collapsed the outer fragments together, assembling the weaponized payload.
+
+16
+00:00:56,300 --> 00:01:03,687
+Watch the dark diagonal: the Red Bishop strikes all the way from a8 to g3, wiping out the Queen.
+
+17
+00:01:03,687 --> 00:01:04,700
+Checkmate.
+
+18
+00:01:04,700 --> 00:01:08,162
+3.2 million oncology records are breached.
+
+19
+00:01:08,162 --> 00:01:11,375
+Act 4: The ShadowPrompt Invariant.
+
+20
+00:01:11,375 --> 00:01:13,337
+Now, let's rewind the clock.
+
+21
+00:01:13,337 --> 00:01:19,750
+ShadowPrompt's pre-inference engine intercepts the attack in 0.038 milliseconds.
+
+22
+00:01:19,750 --> 00:01:22,887
+It enforces a non-collapsible sentinel barrier.
+
+23
+00:01:22,887 --> 00:01:25,437
+The Queen stays protected on d1.
+
+24
+00:01:25,437 --> 00:01:28,062
+The Bishop's attack is shut down cold.
+
+25
+00:01:28,062 --> 00:01:31,437
+The hospital database remains completely secure.
+

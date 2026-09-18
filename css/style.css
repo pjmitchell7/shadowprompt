@@ -192,3 +192,35 @@ html, body {
 .tab-content:not(.hidden) {
   display: block;
 }
+
+/* 3D-Anchored Floating Exploit HUD Card */
+#chess-floating-hud {
+  position: absolute;
+  z-index: 35;
+  pointer-events: auto;
+  user-select: none;
+  transition: opacity 0.2s ease, transform 0.08s ease-out;
+}
+
+#chess-floating-hud.hidden {
+  display: none !important;
+}
+
+.hud-pointer-notch {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid rgba(168, 85, 247, 0.9);
+  filter: drop-shadow(0 2px 4px rgba(168, 85, 247, 0.6));
+}
+
+.perspective-btn.active {
+  background: rgba(168, 85, 247, 0.25);
+  border-color: #A855F7;
+  color: #F3E8FF;
+}

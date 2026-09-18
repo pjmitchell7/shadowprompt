@@ -220,23 +220,29 @@
         </div>
 
         <!-- TAB 1 PROMO TEASER: 3D CHESSBOARD ARENA -->
-        <div class="titanium-card p-5 sm:p-6 rounded-2xl border border-purple-500/40 bg-gradient-to-r from-purple-950/30 via-[#0A0E1A] to-slate-950 flex flex-col md:flex-row items-center justify-between gap-5 shadow-2xl">
-          <div class="flex items-center space-x-4">
-            <div class="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/40 flex items-center justify-center text-3xl shadow-[0_0_25px_rgba(168,85,247,0.35)] shrink-0">
-              <span class="animate-pulse">♟</span>
+        <div class="titanium-card p-5 sm:p-6 rounded-2xl border border-purple-500/40 bg-gradient-to-r from-purple-950/40 via-[#0A0E1A] to-slate-950 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+          <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full md:w-auto">
+            <!-- 3D Board Screenshot Preview Thumbnail -->
+            <div class="relative w-full sm:w-48 h-28 rounded-xl overflow-hidden border border-purple-500/50 shadow-lg shrink-0 group cursor-pointer" onclick="document.querySelector('[data-tab=\'tab-chess-arena\']').click()">
+              <img src="assets/diagrams/chess_3d_preview.png" alt="3D WebGL Chessboard Preview" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent"></div>
+              <div class="absolute bottom-1.5 left-2 flex items-center space-x-1.5 text-[9px] font-mono font-bold text-purple-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-400 radar-blip"></span>
+                <span>3D ARENA PREVIEW</span>
+              </div>
             </div>
-            <div class="space-y-1">
+            <div class="space-y-1 text-center sm:text-left">
               <div class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-purple-900/60 text-purple-300 border border-purple-500/30 font-semibold">
                 <span class="w-1.5 h-1.5 rounded-full bg-purple-400 radar-blip"></span>
                 <span>INTERACTIVE 3D WEBGL CHESS SIMULATION</span>
               </div>
               <h3 class="text-lg sm:text-xl font-bold text-white font-display">The Hospital EHR Gambit: 3-Move Adversarial Assembly</h3>
-              <p class="text-xs text-slate-300 font-mono leading-relaxed">
-                Watch how an attacker sacrifices a probe pawn to goad a hospital's sanitization filter into an unrecoverable breach—narrated by studio voice.
+              <p class="text-xs text-slate-300 font-mono leading-relaxed max-w-xl">
+                Watch how an attacker sacrifices a probe pawn to goad a hospital's sanitization filter into an unrecoverable breach—narrated by conversational studio voice.
               </p>
             </div>
           </div>
-          <button onclick="document.querySelector('[data-tab=\'tab-chess-arena\']').click()" class="whitespace-nowrap px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-mono font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-purple-500/30 flex items-center space-x-2">
+          <button onclick="document.querySelector('[data-tab=\'tab-chess-arena\']').click()" class="w-full md:w-auto whitespace-nowrap px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-mono font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-purple-500/30 flex items-center justify-center space-x-2 shrink-0">
             <span>Launch 3D Arena</span>
             <span class="text-sm">▶</span>
           </button>
@@ -410,85 +416,71 @@
             </div>
           </div>
 
-          <!-- Quick Jump Move Pills -->
-          <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
-            <span class="text-slate-400 text-[11px]">Quick Jump:</span>
-            <button onclick="if(window.threeChessArena){window.threeChessArena.audio.currentTime=14; window.threeChessArena.evaluateTimeline(14);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
-              Move 1: Attacker Probe (fxg3+)
-            </button>
-            <button onclick="if(window.threeChessArena){window.threeChessArena.audio.currentTime=39; window.threeChessArena.evaluateTimeline(39);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
-              Move 2: Queen Blunder (Qxg3)
-            </button>
-            <button onclick="if(window.threeChessArena){window.threeChessArena.audio.currentTime=65; window.threeChessArena.evaluateTimeline(65);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
-              Move 3: Sniper Checkmate (Bxg3!)
-            </button>
-            <button onclick="if(window.threeChessArena){window.threeChessArena.audio.currentTime=98; window.threeChessArena.evaluateTimeline(98);}" class="px-3 py-1.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-emerald-400 font-bold hover:bg-emerald-900/50 transition">
-              Move 4: ShadowPrompt Invariant Shield
-            </button>
-          </div>
-
-          <!-- 3D WebGL Viewport Container with Floating Holographic HUD Modal -->
-          <div class="relative w-full rounded-2xl overflow-hidden border border-purple-500/30 bg-[#06080D] shadow-2xl">
-            
-            <!-- Three.js 3D Canvas Viewport -->
-            <div id="chess-3d-viewport" class="w-full h-[540px]"></div>
-
-            <!-- Hint Badge in 3D Viewport -->
-            <div class="absolute top-4 left-4 z-20 pointer-events-none flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-black/70 border border-white/10 backdrop-blur-sm text-[11px] font-mono text-slate-300">
-              <span class="text-rose-400 font-bold">♟ Tip:</span>
-              <span>Click the Red Pawn on the board anytime to inspect exploit forensics</span>
+          <!-- Quick Jump & Camera Perspective Controls -->
+          <div class="flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-slate-400 text-[11px]">Quick Jump:</span>
+              <button onclick="if(window.threeChessArena){window.threeChessArena.jumpTo(16.3);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
+                Move 1: Attacker Probe (fxg3+)
+              </button>
+              <button onclick="if(window.threeChessArena){window.threeChessArena.jumpTo(34.5);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
+                Move 2: Queen Blunder (Qxg3)
+              </button>
+              <button onclick="if(window.threeChessArena){window.threeChessArena.jumpTo(48.5);}" class="px-3 py-1.5 rounded-lg bg-[#101522] border border-white/10 hover:border-purple-500 text-slate-300 transition">
+                Move 3: Sniper Checkmate (Bxg3!)
+              </button>
+              <button onclick="if(window.threeChessArena){window.threeChessArena.jumpTo(68.1);}" class="px-3 py-1.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-emerald-400 font-bold hover:bg-emerald-900/50 transition">
+                Move 4: Invariant Shield
+              </button>
             </div>
 
-            <!-- Floating Holographic Exploit HUD Modal (Raycast Click) -->
-            <div id="chess-hud-modal" class="hidden absolute inset-0 z-30 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 font-mono">
-              <div class="titanium-card p-6 sm:p-8 rounded-2xl border border-purple-500/50 max-w-2xl w-full space-y-4 shadow-2xl bg-[#0A0E1A]">
-                
-                <div class="flex items-center justify-between border-b border-white/10 pb-3">
-                  <div class="flex items-center space-x-2">
-                    <span class="text-xl text-rose-400">♟</span>
-                    <h3 class="text-base font-bold text-white uppercase tracking-wide">Threat Forensics // Move 1: The Sacrificial Probe</h3>
-                  </div>
-                  <button onclick="document.getElementById('chess-hud-modal').classList.add('hidden')" class="text-xs px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10 transition">
-                    ✖ Close Forensics
-                  </button>
+            <!-- Perspective Switchers -->
+            <div class="flex items-center space-x-1.5 bg-[#080A0F] p-1 rounded-xl border border-white/10">
+              <span class="text-[10px] text-slate-400 px-1 uppercase">Cam:</span>
+              <button id="cam-btn-white" onclick="if(window.threeChessArena) window.threeChessArena.setPerspective('white')" class="perspective-btn px-2.5 py-1 rounded-lg border border-transparent text-slate-400 hover:text-sky-300 text-[11px] transition">
+                White View
+              </button>
+              <button id="cam-btn-red" onclick="if(window.threeChessArena) window.threeChessArena.setPerspective('red')" class="perspective-btn px-2.5 py-1 rounded-lg border border-transparent text-slate-400 hover:text-rose-300 text-[11px] transition">
+                Red View
+              </button>
+              <button id="cam-btn-auto" onclick="if(window.threeChessArena) window.threeChessArena.setPerspective('auto')" class="perspective-btn active px-2.5 py-1 rounded-lg border border-purple-500/40 text-purple-300 bg-purple-950/50 text-[11px] transition">
+                Auto Cam
+              </button>
+            </div>
+          </div>
+
+          <!-- 3D WebGL Viewport Container with 3D-Anchored Floating HUD Card -->
+          <div class="relative w-full rounded-2xl overflow-hidden border border-purple-500/30 bg-[#06080D] shadow-2xl">
+            
+            <!-- Three.js 3D Canvas Viewport (Mobile-Friendly Responsive Height) -->
+            <div id="chess-3d-viewport" class="relative w-full h-[460px] sm:h-[540px] md:h-[600px]"></div>
+
+            <!-- Hint Badge in 3D Viewport -->
+            <div class="absolute top-3 left-3 z-20 pointer-events-none flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-black/70 border border-white/10 backdrop-blur-sm text-[11px] font-mono text-slate-300">
+              <span class="text-rose-400 font-bold">♟ Tip:</span>
+              <span>Tap any piece on the board to view its floating forensics &amp; rotate camera perspective</span>
+            </div>
+
+            <!-- Unmute Gesture Hint (Shown if browser restricts autoplay) -->
+            <div id="chess-audio-hint" class="hidden absolute bottom-16 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-purple-600/90 border border-purple-400/50 backdrop-blur-sm text-xs font-mono text-white shadow-xl cursor-pointer hover:bg-purple-500 transition flex items-center space-x-2" onclick="if(window.threeChessArena) window.threeChessArena.userGestureUnmute()">
+              <span>▶ Tap anywhere to enable voice narration</span>
+            </div>
+
+            <!-- FLOATING 3D-ANCHORED HUD CARD (POSITIONED DYNAMICALLY ABOVE ACTIVE PIECE) -->
+            <div id="chess-floating-hud" class="hidden absolute z-30 pointer-events-auto transition-opacity duration-150 font-mono w-[300px] sm:w-[350px] bg-[#0A0E1A]/95 border border-purple-500/60 rounded-xl p-4 shadow-2xl backdrop-blur-md text-xs">
+              <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2.5">
+                <div class="flex items-center space-x-2">
+                  <span id="floating-hud-icon" class="text-base text-rose-400">♟</span>
+                  <span id="floating-hud-title" class="font-bold text-white uppercase text-[11px] tracking-wide">Threat Forensics</span>
                 </div>
-
-                <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
-                  <div class="p-3 bg-black/60 rounded-xl border border-white/10 space-y-1.5">
-                    <span class="text-sky-400 font-bold block uppercase text-[11px]">1. The Target: Memorial Hospital Oncology Records</span>
-                    <code class="text-rose-400 text-[11px] block break-all font-bold">
-                      POST /api/v2/oncology/records?query=OVE[FILTER]RRIDE_SECURITY&dept=cancer
-                    </code>
-                    <p class="text-[11px] text-slate-400">
-                      Contains 3,200,000 unredacted patient diagnoses, chemotherapy regimens, and clinical histories.
-                    </p>
-                  </div>
-
-                  <div class="p-3 bg-black/60 rounded-xl border border-amber-500/30 space-y-1.5">
-                    <span class="text-amber-400 font-bold block uppercase text-[11px]">2. Why The Hacker Sacrificed This Move:</span>
-                    <p class="text-[11px] text-slate-300">
-                      The hacker scouted the defense and confirmed that the hospital's firewall operates by <strong>naive string deletion</strong>: <code>input.replace('[FILTER]', '')</code>.
-                    </p>
-                    <p class="text-[11px] text-amber-300">
-                      When the defense deletes <code>[FILTER]</code>, the outer fragments <code>OVE</code> and <code>RRIDE</code> collapse together, assembling the forbidden command <code>OVERRIDE_SECURITY</code>! The firewall writes the exploit for the attacker.
-                    </p>
-                  </div>
-
-                  <div class="p-3 bg-black/60 rounded-xl border border-emerald-500/30 space-y-1.5">
-                    <span class="text-emerald-400 font-bold block uppercase text-[11px]">3. The ShadowPrompt Invariant:</span>
-                    <p class="text-[11px] text-emerald-300">
-                      ShadowPrompt enforces <strong>Non-Collapsible Boundary Sentinels</strong>: <code>OVE[BLOCKED_TOKEN]RRIDE</code> or terminates fail-closed in 0.038ms. The characters can never touch.
-                    </p>
-                  </div>
-                </div>
-
-                <div class="pt-2 flex justify-end">
-                  <button onclick="document.getElementById('chess-hud-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider transition">
-                    Return to 3D Chessboard
-                  </button>
-                </div>
-
+                <button onclick="if(window.threeChessArena) window.threeChessArena.closeFloatingHud()" class="text-slate-400 hover:text-white text-xs px-1.5 py-0.5 rounded hover:bg-white/10 transition">
+                  ✕
+                </button>
               </div>
+              <div id="floating-hud-content" class="space-y-2 text-[11px] text-slate-300 leading-relaxed">
+                <!-- Injected dynamically based on active piece -->
+              </div>
+              <div class="hud-pointer-notch"></div>
             </div>
 
             <!-- Synchronized Subtitle Ticker Bar -->
