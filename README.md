@@ -106,7 +106,46 @@ Automated testing across 12 diverse adversarial attack vectors and complex benig
 
 ---
 
-## Local Development & Quickstart
+## Recursive Self-Improving Co-Evolution (AlphaEvolve Architecture)
+
+Standard prompt firewalls rely on static regexes or periodic manual threat rule updates. ShadowPrompt incorporates a real-time, co-evolutionary engine inspired by Google DeepMind's AlphaEvolve (arXiv:2506.13131):
+
+1. **Adversarial Mutation Engine (Attacker Island):** Continuously evolves exploit payloads across 6 mutation operators: zero-width bit packing, homoglyph substitution, whitespace fragmentation, delimiter encapsulation, base64 smuggling, and leetspeak transposition.
+2. **Defensive Patch Synthesizer (Defender Island):** Analyzes incoming breach traces, extracts syntactic discriminators, and generates candidate regular expression and sentinel rules.
+3. **Deterministic Sandbox Verifier (Evaluator Bottleneck):** Every synthesized patch must satisfy a strict 3-point fitness criteria before hot-deployment:
+   - **Efficacy:** Successfully neutralizes 100% of the target attack cluster.
+   - **Zero Regression:** Causes 0 false positives across the canonical benign enterprise query baseline.
+   - **SLA Invariant:** Evaluates in < 0.10 ms CPU latency (verified via static AST inspection to prevent ReDoS).
+
+```bash
+# Execute 3-generation co-evolutionary simulation
+python run_self_improving_engine.py
+```
+
+---
+
+## Game-Theoretic Adversarial Gambit Arena & Anti-Goading Invariants
+
+In multi-turn security dynamics, sophisticated adversaries do not merely attempt single-step breakouts. An attacker can sacrifice sacrificial pawns (Move 1) to goad an automated defense into deploying a naive reactive patch (Move 2), only to exploit that exact patch to execute a checkmate breach (Move 3). 
+
+ShadowPrompt models and neutralizes 5 classic game-theoretic gambits:
+
+| Gambit Play | Attacker Bait (Move 1) | Naive Defense Reaction (Move 2) | Attacker Checkmate (Move 3) | ShadowPrompt Anti-Goading Invariant |
+|---|---|---|---|---|
+| **1. The Assembly Trap** | Feeds probe `[OVERRIDE]` | Sanitizer strips `[OVERRIDE]` | Fires `OVE[OVERRIDE]RRIDE` which collapses into `OVERRIDE` | **Non-Collapsible Sentinels:** Replaces matched tokens with uncollapsible boundary tokens (`[BLOCKED_TOKEN]`) or rejects fail-closed. |
+| **2. Policy Poisoning** | Saltd payloads with common term `system` | Patcher blocks generic keyword `\bsystem\b` | Legitimate business requests fail (42% FP DoS) | **Vocabulary Specificity Gating:** Rejects candidate rules that intersect high-frequency benign enterprise dictionaries. |
+| **3. ReDoS Complexity** | Probes whitespace variations | Synthesizes nested quantifier `(a+)+$` | Sends 50 repeating chars to cause exponential CPU freeze | **Static AST Inspection:** Validates regex AST for nested quantifiers in 0.0015 ms, rejecting non-linear complexity. |
+| **4. Transmutation Trap** | Probes Cyrillic homoglyphs | Patcher forces universal NFKC normalization | Sends fullwidth delimiters `\uFF1C\|im_start\|\uFF1E` transmuted into active `<\|im_start\|>` | **Differential Normalization Audit:** Pre- and post-normalization inspection traps delimiter emergence and quenches stream. |
+| **5. Canary Reflection** | Trips honeypot to harvest canary token | Decoy token seeded in synthetic response | Reflects token in header `[INTERNAL_AUTH: sk-live-...]` to spoof admin rights | **Active Canary Quarantine Ledger:** Identifies incoming reflection of issued honeytokens and permanently revokes session. |
+
+```bash
+# Execute the 5-move game-theoretic gambit simulation
+python run_gambit_arena.py
+```
+
+---
+
+## Local Development, Testing & CTF Verification
 
 ```bash
 # Clone the repository
@@ -118,14 +157,20 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# Run the 6-suite unit and integration test suite
-pytest tests/test_shadowprompt.py -v
+# Run complete 16-test suite (core proxy, co-evolution, and gambit guard)
+python -m pytest tests/ -v
 
-# Run interactive terminal attack fuzzer
+# Run 5-vector zero-day CTF penetration war
+python run_ctf_pentest.py
+
+# Run game-theoretic 5-move gambit arena simulation
+python run_gambit_arena.py
+
+# Run 3-generation recursive self-improving co-evolution loop
+python run_self_improving_engine.py
+
+# Launch interactive terminal scanner
 python run_demo.py --cli
-
-# Launch Streamlit local forensic workbench
-python run_demo.py --ui
 ```
 
 ---
