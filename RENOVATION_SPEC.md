@@ -100,3 +100,15 @@ Implementation ownership may be split into three independent areas: frontend she
 Phase 3 uses Astra Ultra to review the complete diff against this specification. Verify the production build in a browser on desktop and a 360-pixel mobile viewport. Exercise custom input, scenario selection, every playback control, camera reset, trace export, reduced motion and WebGL fallback. Capture console/page errors and verify animation termination. Review the visual result for restrained color, readable typography and clear analyst workflow.
 
 Commit and push the verified changes directly to `main` as authorized. Confirm GitHub Pages build readiness and deployment status where accessible. Record test results, measured performance context and any remaining limitations without claiming production certification or deployment of external infrastructure.
+
+## Follow-up: First-use clarity
+
+The initial workspace assumes familiarity with adversarial replay and payload inspection. Replace that opening with a compact explanation of the product's purpose and a clear way to begin.
+
+- Identify ShadowPrompt as a tool for exploring prompt-injection attempts and explain the term in ordinary language.
+- Explain that visitors can play example conversations or check their own text and inspect the local rules behind each result.
+- Keep the browser-only operating mode clear on both desktop and mobile.
+- Provide direct access to the existing replay and custom-input controls without adding a blocking introduction or a separate marketing page.
+- Preserve the restrained design, responsive layout, keyboard access and existing inspection behavior.
+
+Acceptance: the opening answers what the tool does, what prompt injection means and how to try it. Any new shortcut reaches a working control with appropriate keyboard focus. Desktop and mobile views remain readable without horizontal overflow, and production browser regression checks pass.

@@ -73,3 +73,9 @@ Remote build and public availability must be confirmed from the release workflow
 Browser and Python inspection are separate heuristic implementations with documented coverage differences. Fixture success is not evidence of general prompt-injection prevention. False positives and false negatives remain possible, and a no-match verdict is not proof of safety. The Python API uses request-contained state and the documented localhost binding; authentication, rate limiting, persistent sessions and remote model transport are outside this release.
 
 Source checks cover maintained authored text and encoded HTML entities. Dependencies, binary files and verbatim third-party license notices are excluded. This renovation does not add a repository license grant or claim independent security certification.
+
+## First-use clarity follow-up
+
+On 2026-09-21, the opening was revised to define prompt injection, explain the local inspection tool and provide clear starting instructions. A compact desktop guide stacks on mobile and retains the browser-only scope. The custom-text shortcut scrolls to and focuses the existing editor. Inspection and arena behavior are unchanged.
+
+The production build and existing browser regression suite passed. Additional browser inspection covered widths of 1440, 1024, 768, 390, 360 and 320 CSS pixels, with no horizontal overflow, sampled text below 12 pixels or console errors. Keyboard activation of the new shortcut focused a fully visible editor at all six widths. Desktop and mobile screenshots were reviewed; the full default arena viewport remains visible at 1440 by 900. Astra Ultra source review found no blocking issues against the added first-use acceptance criteria.

@@ -96,7 +96,7 @@ def run_checks(url, artifacts):
         page.on("console", lambda message: errors.append(message.text) if message.type == "error" else None)
         response = page.goto(url, wait_until="networkidle")
         assert response.status == 200
-        expect(page.get_by_role("heading", name="Inspection workspace")).to_be_visible()
+        expect(page.get_by_role("heading", name="See how prompts try to redirect an AI")).to_be_visible()
         expect(page.locator("#turn-list button")).to_have_count(4)
         assert_no_overflow(page)
         assert_control_contrast(page)

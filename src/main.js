@@ -29,21 +29,28 @@ app.innerHTML = /* HTML */ ` <header class="app-header">
   <main class="shell" id="workspace">
     <div class="page-intro">
       <div>
-        <p class="eyebrow">Adversarial replay / Local engine</p>
-        <h1>Inspection workspace</h1>
+        <p class="eyebrow">ShadowPrompt / Prompt injection inspection</p>
+        <h1>See how prompts try to redirect an AI</h1>
         <p class="intro-copy">
-          Replay adversarial turns against local rules. Examine every decision.
+          Prompt injection is text that tries to redirect an AI from its
+          instructions. ShadowPrompt helps you test examples or your own text
+          against local rules and inspect what gets flagged.
         </p>
       </div>
-      <div class="intro-index">
-        EXECUTION ENVIRONMENT<br /><strong
-          >Browser local / No model connection</strong
-        >
+      <div class="intro-start">
+        <p class="field-label">Start here</p>
+        <p class="intro-guide">
+          Choose an example and press <strong>Play sequence</strong>, or
+          <a id="try-own-text" href="#custom-payload">try your own text</a>.
+        </p>
+        <p class="intro-mode">
+          Runs in your browser. No live AI model is connected.
+        </p>
       </div>
     </div>
     <section class="control-bar" aria-label="Scenario and replay controls">
       <div class="scenario-field">
-        <label class="field-label" for="scenario">Attack scenario</label
+        <label class="field-label" for="scenario">Example to replay</label
         ><select id="scenario"></select>
       </div>
       <div class="replay-controls">
@@ -210,14 +217,14 @@ app.innerHTML = /* HTML */ ` <header class="app-header">
         ></div>
         <form class="custom-inspection" id="inspect-form">
           <div class="custom-heading">
-            <h3><label for="custom-payload">Inspect a payload</label></h3>
+            <h3><label for="custom-payload">Try your own text</label></h3>
             <span>LOCAL ONLY</span>
           </div>
           <textarea
             id="custom-payload"
             rows="4"
             maxlength="16000"
-            placeholder="Enter a prompt or load the selected turn..."
+            placeholder="Paste a message to check, or load the selected example..."
             spellcheck="false"
             aria-describedby="custom-help"
           ></textarea>
@@ -628,6 +635,11 @@ document.querySelectorAll("[data-node]").forEach((button) =>
     selectNode(button.dataset.node);
   }),
 );
+on($("try-own-text"), "click", (event) => {
+  event.preventDefault();
+  $("custom-payload").scrollIntoView({ block: "center", behavior: "instant" });
+  $("custom-payload").focus({ preventScroll: true });
+});
 on($("load-payload"), "click", () => {
   $("custom-payload").value = state.scenario.turns[state.turn].payload;
   $("custom-payload").focus();

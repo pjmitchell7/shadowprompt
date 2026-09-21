@@ -203,20 +203,35 @@ h1 {
 }
 .intro-copy {
   margin: 0;
+  max-width: 760px;
   color: var(--muted);
   font-size: 14px;
   line-height: 1.6;
 }
-.intro-index {
-  text-align: right;
-  font: 12px var(--mono);
-  color: var(--muted);
-  line-height: 1.9;
-  flex-shrink: 0;
+.intro-start {
+  flex: 0 0 300px;
 }
-.intro-index strong {
-  color: #d9e1e4;
-  font-weight: 400;
+.intro-guide {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.intro-guide strong {
+  color: #e0e7e9;
+  font-weight: 500;
+}
+.intro-guide a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--green);
+}
+.intro-mode {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
 }
 .control-bar {
   border: 1px solid var(--line);
@@ -835,8 +850,18 @@ textarea::placeholder {
   .metric:nth-child(-n + 2) {
     border-bottom: 0;
   }
-  .intro-index {
-    display: none;
+  .page-intro {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .intro-start {
+    flex-basis: auto;
+    border-left: 2px solid var(--line);
+    padding-left: 12px;
+  }
+  .intro-start .field-label {
+    margin-bottom: 0;
   }
   .control-bar {
     align-items: stretch;
