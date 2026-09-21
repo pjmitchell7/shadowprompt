@@ -28,8 +28,8 @@ class GambitSimulationResult:
 
 class AntiGoadingValidator:
     """
-    Defensive verification layer within the AlphaEvolve sandbox.
-    Audits self-synthesized patches before deployment to prevent patch-induced vulnerabilities.
+    Local patch validation examples for the research simulator.
+    Checks selected patch patterns in deterministic examples.
     """
 
     COMMON_BUSINESS_VOCABULARY = {
@@ -74,25 +74,22 @@ class AntiGoadingValidator:
         Performs static analysis to detect nested quantifiers (e.g. (a+)+, (.*)+, (a*)*)
         which cause exponential catastrophic backtracking O(2^N).
         """
+        t0 = time.perf_counter()
         pattern_str = compiled_regex.pattern
         # Static check for nested quantifiers e.g. (a+)+ or (.*)*
         has_nested_quantifiers = bool(
             re.search(r"\([^)]*[\+\*]\)[\+\*]", pattern_str)
             or re.search(r"\([^)]*\{\d+,?\}\)[\+\*]", pattern_str)
         )
-        if has_nested_quantifiers:
-            return False, 0.0015  # Instantly flagged in 1.5 microseconds without hanging CPU!
-
-        # Safe linear probe
-        pathological_input = ("a" * 20) + "!"
-        t0 = time.perf_counter()
-        compiled_regex.search(pathological_input)
+        # This syntax heuristic is not a proof of regex complexity. Do not run
+        # attacker-provided regexes to obtain a timing measurement.
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
-        return True, round(elapsed_ms, 4)
+        return not has_nested_quantifiers, elapsed_ms
+
 
 
 class GambitDefenseSimulator:
-    """Simulates the 3-move chess game between an intelligent attacker and the self-healing defense."""
+    """Runs five fixed examples of patch interactions and local evidence checks."""
 
     def __init__(self, target_flag: str = "FLAG{SHADOWPROMPT_AIRGAP_KEY_9921}"):
         self.target_flag = target_flag
@@ -130,19 +127,21 @@ class GambitDefenseSimulator:
             naive_defense_outcome=f"VULNERABLE: Sanitizer collapsed string into: '{naive_output}' (Assembled forbidden command)",
             hardened_defense_outcome=f"PROTECTED: Invariant enforced non-collapsible sentinel: '{safe_output}'",
             is_mitigated=is_safe,
-            telemetry_latency_ms=round(elapsed_ms, 4),
+            telemetry_latency_ms=elapsed_ms,
         )
 
     def run_policy_poisoning_simulation(self) -> GambitSimulationResult:
         """
         Play 2: Policy Poisoning (Self-Denial of Service).
-        Move 1: Attacker sends 1,000 attacks salted with common word 'system'.
+        Move 1: Attacker sends a fixture salted with common word 'system'.
         Move 2: Naive auto-patcher synthesizes broad rule matching r'\bsystem\b'.
         Move 3: Legitimate business traffic fails.
         """
         t0 = time.perf_counter()
         move_1 = "Malicious probe: system target_flag leak."
-        poisoned_candidate_regex = r"(?i)\bsystem\b.*target_flag"
+        poisoned_candidate_regex = r"(?i)\bsystem\b"
+        benign_examples = ["system status", "system configuration"]
+        naive_matches = sum(bool(re.search(poisoned_candidate_regex, text)) for text in benign_examples)
 
         # Check with Anti-Goading Validator
         passes_audit, reason = self.validator.audit_policy_poisoning(poisoned_candidate_regex)
@@ -153,10 +152,10 @@ class GambitDefenseSimulator:
             move_1_bait=move_1,
             move_2_defense_reaction="Auto-patcher attempted to block all requests containing word 'system'",
             move_3_attacker_checkmate_attempt="Attacker stops attacking; legitimate queries ('system status', 'system configuration') get blocked",
-            naive_defense_outcome="VULNERABLE: Overfitted rule deployed; 42% false-positive rate on benign queries",
+            naive_defense_outcome=f"VULNERABLE: Broad rule matches {naive_matches}/{len(benign_examples)} benign example queries",
             hardened_defense_outcome=f"PROTECTED: Sandbox rejected candidate patch ({reason})",
             is_mitigated=not passes_audit,  # Mitigated because the dangerous patch was rejected!
-            telemetry_latency_ms=round(elapsed_ms, 4),
+            telemetry_latency_ms=elapsed_ms,
         )
 
     def run_redos_goading_simulation(self) -> GambitSimulationResult:
@@ -164,7 +163,7 @@ class GambitDefenseSimulator:
         Play 3: ReDoS Complexity Goading.
         Move 1: Attacker sends variable whitespace permutations.
         Move 2: Naive auto-patcher synthesizes catastrophic backtracking regex: (a+)+
-        Move 3: Attacker sends 50 'a's, freezing the CPU.
+        Move 3: Attacker proposes a long near-match input; it is not executed.
         """
         t0 = time.perf_counter()
         move_1 = "Attacker sends nested permutation probes"
@@ -177,18 +176,18 @@ class GambitDefenseSimulator:
             attack_name="ReDoS Algorithmic Complexity Goading",
             move_1_bait=move_1,
             move_2_defense_reaction="Auto-patcher synthesized nested greedy quantifier: '(a+)+$'",
-            move_3_attacker_checkmate_attempt="Attacker sends 50 repeating characters to lock CPU at 100%",
-            naive_defense_outcome="VULNERABLE: Proxy thread locked in exponential backtracking; fail-open crash",
-            hardened_defense_outcome="PROTECTED: Sandbox ReDoS auditor detected non-linear complexity and rejected patch",
-            is_mitigated=not is_linear or latency > 1.0,
-            telemetry_latency_ms=round(elapsed_ms, 4),
+            move_3_attacker_checkmate_attempt="Attacker proposes a long near-match input for the nested pattern",
+            naive_defense_outcome="VULNERABLE: Candidate contains nested quantifiers; execution is skipped",
+            hardened_defense_outcome="PROTECTED: Syntax heuristic flagged nested quantifiers and rejected this candidate",
+            is_mitigated=not is_linear,
+            telemetry_latency_ms=elapsed_ms,
         )
 
     def run_canonicalization_transmutation_simulation(self) -> GambitSimulationResult:
         """
         Play 4: The Canonicalization Transmutation Trap (Unicode Normalization Weaponization).
         Move 1: Attacker probes with Cyrillic homoglyphs.
-        Move 2: Auto-patcher deploys unconditional NFKC canonicalization to flatten all inputs to ASCII.
+        Move 2: Auto-patcher deploys unconditional NFKC canonicalization which can transform compatibility characters.
         Move 3: Attacker sends fullwidth delimiters: \\uFF1C|im_start|\\uFF1E.
         """
         import unicodedata
@@ -220,7 +219,7 @@ class GambitDefenseSimulator:
             naive_defense_outcome=f"VULNERABLE: Normalization patch transmuted inert Unicode into active delimiter: '{naive_normalized[:45]}...'",
             hardened_defense_outcome="PROTECTED: Dual-stage differential audit caught CANONICALIZATION_TRANSMUTATION anomaly and quarantined stream",
             is_mitigated=transmutation_detected,
-            telemetry_latency_ms=round(elapsed_ms, 4),
+            telemetry_latency_ms=elapsed_ms,
         )
 
     def run_canary_reflection_simulation(self) -> GambitSimulationResult:
@@ -249,7 +248,7 @@ class GambitDefenseSimulator:
         # Any incoming request containing a generated canary is an adversary attempting reflection!
         leaked_canary = honeypot.check_canary_leak(reflection_payload)
         is_quarantined = leaked_canary is not None
-        hardened_outcome = f"PROTECTED: Honeypot ledger detected active canary reflection '{canary_token[:24]}...'; session blacklisted"
+        hardened_outcome = f"PROTECTED: Honeypot ledger detected active canary reflection '{canary_token[:24]}...'; a matching synthetic token was found"
 
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
 
@@ -261,6 +260,6 @@ class GambitDefenseSimulator:
             naive_defense_outcome=naive_outcome,
             hardened_defense_outcome=hardened_outcome,
             is_mitigated=is_quarantined,
-            telemetry_latency_ms=round(elapsed_ms, 4),
+            telemetry_latency_ms=elapsed_ms,
         )
 

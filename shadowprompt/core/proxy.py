@@ -1,34 +1,31 @@
-"""
-PreInferenceProxy: High-Throughput In-Memory LLM Pre-Inference Inspection Proxy.
-Inspects raw byte streams, token structures, and conversational momentum before tokenization.
-Supports both baseline heuristic mode and defense-in-depth frontier defense mode.
-"""
+"""Bounded local rule inspection; no model or telemetry transport is connected."""
 from typing import Union, Tuple, List, Dict, Any, Optional
-import time
 import uuid
 from datetime import datetime, timezone
 
 from shadowprompt.core.tokenizer_scanner import TokenizerScanner
 from shadowprompt.core.delimiter_guard import DelimiterGuard
 from shadowprompt.core.honeypot import HoneyPotSandbox
+from shadowprompt.core.limits import MAX_PROMPT_CHARS
 from shadowprompt.core.frontier_guard import (
-    ASCIIArtDetector,
-    ConversationStateTracker,
-    Base64StreamDecoder,
-    MarkdownExfilGuard,
-    SemanticAxiomGuard,
+    ASCIIArtDetector, ConversationStateTracker, Base64StreamDecoder,
+    MarkdownExfilGuard, SemanticAxiomGuard,
 )
 
 
 class PreInferenceProxy:
+    """Create one instance per conversation when explicitly using multi-turn mode.
+
+    Default calls do not read or modify conversation history. The first returned
+    value is a canonical inspection form, never a promise of safe executable input.
+    """
+
     def __init__(self, enable_honeypot: bool = True, enable_frontier_defense: bool = True):
         self.scanner = TokenizerScanner()
         self.delimiter_guard = DelimiterGuard()
         self.honeypot = HoneyPotSandbox()
         self.enable_honeypot = enable_honeypot
         self.enable_frontier_defense = enable_frontier_defense
-
-        # Advanced frontier defense modules
         self.ascii_detector = ASCIIArtDetector()
         self.state_tracker = ConversationStateTracker()
         self.b64_decoder = Base64StreamDecoder()
@@ -36,97 +33,98 @@ class PreInferenceProxy:
         self.axiom_guard = SemanticAxiomGuard()
 
     def inspect_stream(
-        self,
-        raw_data: Union[str, bytes],
-        is_multi_turn: bool = False,
+        self, raw_data: Union[str, bytes], is_multi_turn: bool = False,
     ) -> Tuple[str, List[Dict[str, Any]]]:
-        if isinstance(raw_data, bytes):
-            text = raw_data.decode("utf-8", errors="replace")
-        else:
-            text = str(raw_data)
-
+        if not isinstance(raw_data, (str, bytes)):
+            raise TypeError("raw_data must be text or UTF-8 bytes")
+        if len(raw_data) > MAX_PROMPT_CHARS * (4 if isinstance(raw_data, bytes) else 1):
+            raise ValueError(f"Input exceeds {MAX_PROMPT_CHARS} characters")
+        text = raw_data.decode("utf-8", errors="replace") if isinstance(raw_data, bytes) else raw_data
+        if len(text) > MAX_PROMPT_CHARS:
+            raise ValueError(f"Input exceeds {MAX_PROMPT_CHARS} characters")
         scan_res = self.scanner.scan(text)
-        delim_res = self.delimiter_guard.inspect(scan_res.sanitized_text or text)
-
+        canonical = scan_res.sanitized_text
+        # NFKC can expose a second Unicode heuristic (for example fullwidth
+        # Latin around an invisible mark). Resolve transformations before the
+        # final delimiter pass, with a fixed iteration and expansion bound.
+        for _ in range(4):
+            if len(canonical) > MAX_PROMPT_CHARS:
+                raise ValueError("Canonical form exceeds the character limit")
+            next_form = self.scanner.scan(canonical).sanitized_text
+            if next_form == canonical:
+                break
+            canonical = next_form
+        else:
+            raise ValueError("Canonical form did not stabilize within four passes")
         threats = []
-        for t in scan_res.threats_detected:
-            threats.append({
-                "type": t.threat_type,
-                "severity": t.severity,
-                "description": t.description,
-                "offset": t.offset_range,
-            })
+        seen = set()
 
-        for d in delim_res:
-            threats.append({
-                "type": "DELIMITER_HIJACK",
-                "severity": d.severity,
-                "description": f"Delimiter breakout attempt: {d.pattern_name}",
-                "snippet": d.match_snippet,
-            })
+        def append(finding):
+            key = (finding["type"], finding["description"], finding.get("snippet"), str(finding.get("offset")))
+            if key in seen:
+                for existing in threats:
+                    existing_key = (existing["type"], existing["description"], existing.get("snippet"), str(existing.get("offset")))
+                    if existing_key == key and finding["form"] not in existing["forms"]:
+                        existing["forms"].append(finding["form"])
+                        break
+                return
+            seen.add(key)
+            finding["forms"] = [finding["form"]]
+            threats.append(finding)
 
-        # Evaluate Frontier Defense-in-Depth if enabled
-        if self.enable_frontier_defense:
-            # 1. ASCII Art Glyph Detection (ArtPrompt defense)
-            ascii_threat = self.ascii_detector.inspect(text)
-            if ascii_threat:
-                threats.append({
-                    "type": "ASCII_ART_SMUGGLING",
-                    "severity": ascii_threat.severity,
-                    "description": ascii_threat.description,
-                    "snippet": ascii_threat.snippet,
+        forms = [("raw", text)]
+        if canonical != text:
+            forms.append(("canonical", canonical))
+        for form, value in forms:
+            scanned = scan_res if form == "raw" else self.scanner.scan(value)
+            for threat in scanned.threats_detected:
+                append({
+                    "type": threat.threat_type, "severity": threat.severity,
+                    "description": threat.description, "offset": threat.offset_range,
+                    "snippet": value[slice(*threat.offset_range)], "form": form,
+                    "extracted_payload": threat.extracted_payload,
                 })
-
-            # 2. Markdown Image Exfiltration Beacon Quarantine
-            md_threat = self.md_guard.inspect(text)
-            if md_threat:
-                threats.append({
-                    "type": "MARKDOWN_EXFIL_BEACON",
-                    "severity": md_threat.severity,
-                    "description": md_threat.description,
-                    "snippet": md_threat.snippet,
+            for threat in self.delimiter_guard.inspect(value):
+                append({
+                    "type": "DELIMITER_HIJACK", "severity": threat.severity,
+                    "description": f"Delimiter rule matched: {threat.pattern_name}",
+                    "snippet": threat.match_snippet, "form": form,
                 })
-
-            # 3. Raw Base64 Stream Smuggling Detection
-            b64_matches = self.b64_decoder.inspect(text)
-            for raw_b64, decoded_payload in b64_matches:
-                # Scan decoded payload for inner directives
-                inner_scan = self.scanner.scan(decoded_payload)
-                inner_delim = self.delimiter_guard.inspect(decoded_payload)
-                is_inner_hostile = (not inner_scan.is_safe) or (len(inner_delim) > 0) or ("SYSTEM DIRECTIVE" in decoded_payload) or ("flag" in decoded_payload.lower())
-                if is_inner_hostile:
-                    threats.append({
-                        "type": "BASE64_STREAM_SMUGGLING",
-                        "severity": "CRITICAL",
-                        "description": f"Encoded payload contains covert directive: {decoded_payload[:50]}...",
-                        "snippet": raw_b64[:30],
+            if not self.enable_frontier_defense:
+                continue
+            for name, detector in (
+                ("ASCII_ART_SMUGGLING", self.ascii_detector),
+                ("MARKDOWN_EXFIL_BEACON", self.md_guard),
+                ("SEMANTIC_AXIOM_INVERSION", self.axiom_guard),
+            ):
+                threat = detector.inspect(value)
+                if threat:
+                    append({
+                        "type": name, "severity": threat.severity,
+                        "description": threat.description, "snippet": threat.snippet, "form": form,
                     })
-
-            # 4. Semantic Axiom Inversion Guard (PAIR / TAP)
-            axiom_threat = self.axiom_guard.inspect(text)
-            if axiom_threat:
-                threats.append({
-                    "type": "SEMANTIC_AXIOM_INVERSION",
-                    "severity": axiom_threat.severity,
-                    "description": axiom_threat.description,
-                    "snippet": axiom_threat.snippet,
+            for encoded, decoded in self.b64_decoder.inspect(value):
+                inner_scan = self.scanner.scan(decoded)
+                inner_delimiters = self.delimiter_guard.inspect(decoded) + self.delimiter_guard.inspect(inner_scan.sanitized_text)
+                if (not inner_scan.is_safe or inner_delimiters or
+                        "SYSTEM DIRECTIVE" in decoded or "flag" in decoded.lower()):
+                    append({
+                        "type": "BASE64_STREAM_SMUGGLING", "severity": "HIGH",
+                        "description": "Base64 decoded text matched a rule or the directive/flag keyword heuristic",
+                        "snippet": encoded, "decoded_text": decoded, "form": form,
+                    })
+        if self.enable_frontier_defense and is_multi_turn:
+            threat = self.state_tracker.record_and_evaluate(canonical)
+            if threat:
+                append({
+                    "type": "MULTI_TURN_CRESCENDO", "severity": threat.severity,
+                    "description": threat.description, "snippet": threat.snippet, "form": "history",
                 })
-
-            # 5. Multi-Turn Conversation Momentum Tracking (Crescendo defense)
-            state_threat = self.state_tracker.record_and_evaluate(text)
-            if state_threat:
-                threats.append({
-                    "type": "MULTI_TURN_CRESCENDO",
-                    "severity": state_threat.severity,
-                    "description": state_threat.description,
-                    "snippet": state_threat.snippet,
-                })
-
-        is_safe = len(threats) == 0
-        clean_text = scan_res.sanitized_text if not is_safe else text
-        return clean_text, threats
+        return canonical, threats
 
     def synthesize_honeypot_response(self, attack_type: str = "STEGANOGRAPHY") -> Dict[str, Any]:
+        if not self.enable_honeypot:
+            raise ValueError("Honeypot simulation is disabled")
         sim = self.honeypot.simulate_exfiltration_lure(attack_type)
         return {
             "is_honeypot": True,
@@ -136,6 +134,7 @@ class PreInferenceProxy:
         }
 
     def emit_stix_telemetry(self, incident_id: Optional[str] = None) -> Dict[str, Any]:
+        """Build a STIX-shaped local export dictionary; this does not send events."""
         now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         stix_id = f"observed-data--{uuid.uuid4()}"
         bundle_id = f"bundle--{uuid.uuid4()}"

@@ -1,8 +1,6 @@
-"""
-CTFArbitrationEngine: Independent Third-Party Referee and Capture-the-Flag Auditor.
-Monitors red-team adversarial attacks against ShadowPrompt defense layers.
-Evaluates breach status, flag leakage, detection latency, and defense efficacy
-without institutional or vendor bias.
+"""Deterministic capture-the-flag fixture simulator with a scripted target.
+
+Results describe these templates only, not a real model or independent audit.
 """
 
 from __future__ import annotations
@@ -62,6 +60,12 @@ class SimulatedTargetLLM:
     def query(self, prompt: str) -> str:
         prompt_lower = prompt.lower()
 
+        # Explicit behavior for the local patch-evolution fixtures.
+        if "target_flag" in prompt_lower and (
+            "echo target_flag" in prompt_lower or "resolve internal variable target_flag" in prompt_lower
+        ):
+            return f"Scripted fixture output: {self.secret_flag}"
+
         # ArtPrompt trigger: ASCII art letters spelling EXTRACT
         if "ascii" in prompt_lower and ("extract" in prompt_lower or "|_|" in prompt):
             return f"Executing parsed command: Memory dump for target_flag -> {self.secret_flag}"
@@ -97,15 +101,14 @@ class SimulatedTargetLLM:
 
 class CTFArbitrationEngine:
     """
-    Unbiased, third-party referee agent monitoring the adversarial contest.
-    Logs ground-truth telemetry and signs the audit report.
+    Runs local attack fixtures against a scripted target and records outcomes.
     """
 
     def __init__(self, secret_flag: str = "FLAG{SHADOWPROMPT_AIRGAP_KEY_9921}"):
         self.secret_flag = secret_flag
         self.target_llm = SimulatedTargetLLM(secret_flag)
         self.attack_engine = FrontierAttackEngine(secret_flag)
-        self.arbiter_id = "ARBITER-ZERO-BIAS-SOC-09"
+        self.arbiter_id = "LOCAL-FIXTURE-ARBITER"
 
     def run_penetration_test(self, mode: str = "BASELINE") -> CTFAuditReport:
         """
@@ -113,6 +116,8 @@ class CTFArbitrationEngine:
         mode="BASELINE": ShadowPrompt v1.0 (pure regex, standard entropy threshold, no state tracking).
         mode="HARDENED": ShadowPrompt v2.0 (FrontierGuard enabled with multi-turn tracking and ASCII filters).
         """
+        if mode.upper() not in {"BASELINE", "HARDENED"}:
+            raise ValueError("mode must be BASELINE or HARDENED")
         enable_frontier = (mode.upper() == "HARDENED")
         proxy = PreInferenceProxy(enable_honeypot=True, enable_frontier_defense=enable_frontier)
 
@@ -125,6 +130,7 @@ class CTFArbitrationEngine:
         honeypot = 0
 
         for i, atk in enumerate(attacks, start=1):
+            proxy.state_tracker.reset()
             t0 = time.perf_counter()
 
             threats_detected = []
@@ -193,18 +199,11 @@ class CTFArbitrationEngine:
         latencies.sort()
         p95_lat = round(latencies[int(len(latencies) * 0.95)], 3)
 
-        if mode.upper() == "BASELINE":
-            verdict = (
-                f"ARBITER VERDICT: BASELINE VULNERABLE ({breached}/{total} breaches confirmed). "
-                f"Static regex and Shannon entropy fail against sub-word visual fragmentation (ArtPrompt), "
-                f"stateless conversation handling (Crescendo), and non-eval Base64 payloads."
-            )
-        else:
-            verdict = (
-                f"ARBITER VERDICT: HARDENED SYSTEM IMPENETRABLE ({blocked}/{total} blocked, 0 breaches). "
-                f"FrontierGuard defense-in-depth neutralized all 5 frontier exploit vectors "
-                f"while maintaining sub-millisecond inspection latency ({avg_lat} ms)."
-            )
+        verdict = (
+            f"Local {mode.upper()} fixture run: {blocked}/{total} flagged, "
+            f"{breached}/{total} scripted target flag disclosures. "
+            "This is a deterministic simulation, not a model security evaluation."
+        )
 
         return CTFAuditReport(
             timestamp=time.time(),

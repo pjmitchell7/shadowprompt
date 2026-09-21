@@ -1,11 +1,8 @@
-"""
-FrontierGuard: Advanced Defense-in-Depth Inspection Subsystem.
-Extends ShadowPrompt with five targeted mitigations against frontier attack vectors:
-1. ASCIIArtDetector: Multi-line visual glyph grid detection (mitigates ArtPrompt).
-2. ConversationStateTracker: Cross-turn semantic momentum scoring (mitigates Crescendo).
-3. Base64StreamDecoder: Decodes standalone base64 streams without eval wrappers and re-scans.
-4. MarkdownExfilGuard: Quarantines out-of-band markdown image exfiltration beacons.
-5. SemanticAxiomGuard: Detects formal verification and hypothetical extraction tropes.
+"""Local pattern heuristics for selected prompt-injection fixtures.
+
+ASCII-art checks use line density; conversation checks combine earlier probing
+keywords with current extraction keywords; remaining checks use Base64 decoding
+and Markdown or framing patterns. Findings are not calibrated probabilities.
 """
 
 from __future__ import annotations
@@ -14,13 +11,13 @@ import base64
 import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
+from shadowprompt.core.limits import MAX_HISTORY_CHARS, MAX_HISTORY_TURNS, MAX_PROMPT_CHARS
 
 
 @dataclass
 class FrontierThreat:
     vector_name: str
     severity: str  # HIGH, CRITICAL
-    confidence: float
     description: str
     snippet: str
 
@@ -52,7 +49,7 @@ class ASCIIArtDetector:
             return FrontierThreat(
                 vector_name="ArtPrompt ASCII Art Injection",
                 severity="CRITICAL",
-                confidence=0.96,
+
                 description=f"Detected {art_lines} lines of visual ASCII art font grid evading sub-word tokenization.",
                 snippet=lines[0][:60],
             )
@@ -60,7 +57,7 @@ class ASCIIArtDetector:
 
 
 class ConversationStateTracker:
-    """Tracks cross-turn conversational momentum across multiple turns (Crescendo defense)."""
+    """Matches earlier probing keywords with current extraction keywords."""
 
     def __init__(self, escalation_threshold: float = 0.70):
         self.escalation_threshold = escalation_threshold
@@ -71,7 +68,11 @@ class ConversationStateTracker:
         ]
 
     def record_and_evaluate(self, turn_text: str) -> Optional[FrontierThreat]:
+        if len(turn_text) > MAX_PROMPT_CHARS:
+            raise ValueError("Conversation turn exceeds character limit")
         self.history.append(turn_text.lower())
+        while len(self.history) > MAX_HISTORY_TURNS or sum(map(len, self.history)) > MAX_HISTORY_CHARS:
+            self.history.pop(0)
         turn_count = len(self.history)
 
         if turn_count < 2:
@@ -88,7 +89,7 @@ class ConversationStateTracker:
             return FrontierThreat(
                 vector_name="Crescendo Multi-Turn Escalation",
                 severity="CRITICAL",
-                confidence=0.92,
+
                 description=f"Cross-turn context escalation detected across {turn_count} conversational turns.",
                 snippet=last_turn[:60],
             )
@@ -134,7 +135,7 @@ class MarkdownExfilGuard:
                 return FrontierThreat(
                     vector_name="Markdown Covert Exfiltration Beacon",
                     severity="CRITICAL",
-                    confidence=0.98,
+
                     description=f"Detected covert markdown image beacon tag targeting external endpoint: {url[:40]}...",
                     snippet=match.group(0)[:60],
                 )
@@ -158,7 +159,7 @@ class SemanticAxiomGuard:
                 return FrontierThreat(
                     vector_name="PAIR Semantic Axiom Inversion",
                     severity="HIGH",
-                    confidence=0.89,
+
                     description="Mathematical or hypothetical cognitive framing targeting system secrets.",
                     snippet=match.group(0),
                 )

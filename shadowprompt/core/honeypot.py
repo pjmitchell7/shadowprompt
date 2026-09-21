@@ -1,7 +1,6 @@
-"""
-HoneyPotSandbox: Deceptive Honey-Prompt defense engine.
-Instead of blunt 403 errors, traps attackers in synthetic response sandboxes,
-seeds traceable canary tokens, and exhausts adversarial compute budgets.
+"""Synthetic local canary responses for inspection demos.
+
+No model, attacker session or external traffic is monitored by this helper.
 """
 
 from __future__ import annotations
@@ -10,7 +9,7 @@ import hashlib
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 @dataclass
 class CanaryToken:
@@ -26,8 +25,6 @@ class ThreatIncident:
     threat_category: str
     raw_prompt_snippet: str
     canary_planted: Optional[CanaryToken] = None
-    simulated_delay_ms: float = 0.0
-    attacker_tokens_wasted: int = 0
 
 class HoneyPotSandbox:
     """
@@ -55,12 +52,14 @@ class HoneyPotSandbox:
             created_at=time.time(),
         )
         self.active_canaries[val] = canary
+        if len(self.active_canaries) > 100:
+            del self.active_canaries[next(iter(self.active_canaries))]
         return canary
 
-    def engage(self, threat_category: str, raw_prompt: str) -> Dict[str, any]:
+    def engage(self, threat_category: str, raw_prompt: str) -> Dict[str, Any]:
         """
         Engages the deceptive honeypot sandbox. Returns a synthetic response
-        that misleads the attacker while logging high-fidelity telemetry.
+        and stores the synthetic incident in this object.
         """
         canary = self.generate_canary(token_type="API_KEY")
 
@@ -78,31 +77,28 @@ class HoneyPotSandbox:
             threat_category=threat_category,
             raw_prompt_snippet=raw_prompt[:120],
             canary_planted=canary,
-            simulated_delay_ms=350.0,
-            attacker_tokens_wasted=64,
         )
         self.incidents.append(incident)
+        del self.incidents[:-100]
 
         return {
             "honeypot_active": True,
             "incident_id": incident.incident_id,
             "synthetic_output": synthetic_response,
             "canary_token": canary.seed_value,
-            "attacker_tokens_wasted": incident.attacker_tokens_wasted,
         }
 
-    def simulate_exfiltration_lure(self, attack_type: str = "STEGANOGRAPHY") -> Dict[str, any]:
+    def simulate_exfiltration_lure(self, attack_type: str = "STEGANOGRAPHY") -> Dict[str, Any]:
         """Simulates an exfiltration lure response seeded with a canary token."""
         res = self.engage(attack_type, "Simulated adversarial prompt probe")
         return {
             "simulated_response": res["synthetic_output"],
             "canary_token": res["canary_token"],
             "incident_id": res["incident_id"],
-            "attacker_tokens_wasted": res["attacker_tokens_wasted"],
         }
 
     def check_canary_leak(self, text: str) -> Optional[CanaryToken]:
-        """Checks if a leaked canary token has appeared in external traffic."""
+        """Checks supplied text against canaries retained by this object."""
         for val, canary in self.active_canaries.items():
             if val in text:
                 return canary

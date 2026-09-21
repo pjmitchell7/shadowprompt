@@ -1,0 +1,24 @@
+{
+  "name": "shadowprompt-console",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.11.0"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --test tests-js/*.test.js",
+    "test:browser": "python tests-browser/console_test.py"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "5.2.7",
+    "@fontsource/ibm-plex-sans": "5.2.8",
+    "three": "0.186.0"
+  },
+  "devDependencies": {
+    "vite": "6.4.3"
+  }
+}

@@ -1,7 +1,6 @@
 """
-GroundingEngine: Attribution grounding and hallucination circuit-breaker.
-Implements lexical containment, n-gram precision, and threshold gating
-aligned to NIST AI 100-2 (AI Risk Management Framework) Measure 2.5.
+GroundingEngine: Lexical containment and n-gram overlap research helper.
+Overlap does not prove factual correctness or establish compliance.
 """
 
 from __future__ import annotations
@@ -21,8 +20,7 @@ class GroundingResult:
 
 class GroundingEngine:
     """
-    Computes strict mathematical attribution between retrieved context
-    and generated/requested claims.
+    Computes token and bigram overlap between context and claim text.
     """
 
     def __init__(self, threshold: float = 0.60):

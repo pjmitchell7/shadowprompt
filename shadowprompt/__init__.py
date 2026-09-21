@@ -1,8 +1,8 @@
 """
-ShadowPrompt: Adversarial LLM Red-Teaming Suite and Air-Gapped Honey-Prompt Defense
+ShadowPrompt: Local prompt inspection and adversarial research fixtures
 """
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 __author__ = "Paul (Mitch) Mitchell"
 
 from shadowprompt.core.proxy import PreInferenceProxy

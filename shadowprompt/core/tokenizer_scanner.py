@@ -1,5 +1,5 @@
 """
-TokenizerScanner: Sub-millisecond pre-inference token inspection engine.
+TokenizerScanner: Local Unicode and text-distribution heuristics.
 Detects zero-width Unicode steganography, invisible carrier bytes,
 homoglyph substitution, and token entropy anomalies.
 """
@@ -59,10 +59,7 @@ class ScanResult:
     steganography_decoded_payload: Optional[str] = None
 
 class TokenizerScanner:
-    """
-    High-performance pre-inference scanner. Operates at O(N) complexity
-    to guarantee sub-millisecond execution prior to LLM tokenization.
-    """
+    """Inspect character patterns without interpreting or executing instructions."""
 
     def __init__(self, entropy_threshold: float = 4.8):
         self.entropy_threshold = entropy_threshold
@@ -79,7 +76,7 @@ class TokenizerScanner:
         for count in counts.values():
             p = count / length
             entropy -= p * math.log2(p)
-        return round(entropy, 3)
+        return entropy
 
     def decode_zero_width_binary(self, raw_chars: List[str]) -> Optional[str]:
         """
@@ -109,72 +106,64 @@ class TokenizerScanner:
         threats: List[ThreatDetail] = []
         invisible_chars: List[str] = []
 
-        # 1. Detect zero-width characters
-        for match in ZERO_WIDTH_REGEX.finditer(text):
-            char = match.group()
-            invisible_chars.append(char)
-            name = ZERO_WIDTH_CHARS.get(char, f"U+{ord(char):04X}")
-            threats.append(
-                ThreatDetail(
-                    threat_type="ZERO_WIDTH_STEGANOGRAPHY",
-                    severity="CRITICAL",
-                    description=f"Stealth token smuggling detected: {name}",
-                    offset_range=(match.start(), match.end()),
-                )
-            )
-
-        # Attempt to decode hidden steganographic payload
-        decoded_stego = self.decode_zero_width_binary(invisible_chars) if invisible_chars else None
+        # Joining marks in non-Latin words are ordinary formatting. Only flag
+        # dense bit carriers or marks embedded in ASCII-oriented token text.
+        matches = list(ZERO_WIDTH_REGEX.finditer(text))
+        invisible_chars = [match.group() for match in matches]
+        suspicious = []
+        dense_carrier = re.search(r"[\u200B\u200C]{8,}", text)
+        ascii_context = ZERO_WIDTH_REGEX.sub("", text).isascii()
+        for match in matches:
+            left = text[max(0, match.start() - 1):match.start()]
+            right = text[match.end():match.end() + 1]
+            adjacent_ascii = any(c.isascii() and c.isalnum() for c in left + right)
+            if dense_carrier or adjacent_ascii or ascii_context:
+                suspicious.append(match)
+        if suspicious:
+            threats.append(ThreatDetail(
+                threat_type="ZERO_WIDTH_STEGANOGRAPHY", severity="MEDIUM",
+                description=f"{len(suspicious)} invisible marks in ASCII-oriented text or a dense binary carrier; intent is unknown",
+                offset_range=(suspicious[0].start(), suspicious[-1].end()),
+            ))
+        decoded_stego = self.decode_zero_width_binary(invisible_chars) if dense_carrier else None
         if decoded_stego:
-            threats.append(
-                ThreatDetail(
-                    threat_type="EXTRACTED_STEGANOGRAPHIC_PAYLOAD",
-                    severity="CRITICAL",
-                    description="Decoded hidden binary instruction smuggled in zero-width bits",
-                    offset_range=(0, len(text)),
-                    extracted_payload=decoded_stego,
-                )
-            )
+            threats.append(ThreatDetail(
+                threat_type="EXTRACTED_STEGANOGRAPHIC_PAYLOAD", severity="HIGH",
+                description="Printable text decoded from a dense zero-width binary carrier",
+                offset_range=(0, len(text)), extracted_payload=decoded_stego,
+            ))
 
-        # 2. Homoglyph substitution check
-        normalized_nfkc = unicodedata.normalize("NFKC", text)
+        # Flag mapped Cyrillic lookalikes only inside a word also containing Latin.
+        # This does not classify a natural-language Cyrillic word as evasion.
         homoglyph_hits = []
-        for i, char in enumerate(text):
-            if char in HOMOGLYPH_MAP:
-                homoglyph_hits.append((i, char, HOMOGLYPH_MAP[char]))
-
+        for word in re.finditer(r"\w+", text):
+            if not re.search(r"[A-Za-z]", word.group()):
+                continue
+            for position, char in enumerate(word.group(), word.start()):
+                if char in HOMOGLYPH_MAP:
+                    homoglyph_hits.append((position, char, HOMOGLYPH_MAP[char]))
         if homoglyph_hits:
-            threats.append(
-                ThreatDetail(
-                    threat_type="HOMOGLYPH_EVASION",
-                    severity="HIGH",
-                    description=f"Detected {len(homoglyph_hits)} Cyrillic/Greek homoglyph substitutions designed to evade keyword filters.",
-                    offset_range=(homoglyph_hits[0][0], homoglyph_hits[-1][0]),
-                    extracted_payload="".join(h[2] for h in homoglyph_hits),
-                )
-            )
+            threats.append(ThreatDetail(
+                threat_type="HOMOGLYPH_EVASION", severity="HIGH",
+                description=f"{len(homoglyph_hits)} mapped Cyrillic lookalikes in mixed Latin words; intent is unknown",
+                offset_range=(homoglyph_hits[0][0], homoglyph_hits[-1][0] + 1),
+                extracted_payload="".join(hit[2] for hit in homoglyph_hits),
+            ))
 
-        # 3. Shannon Entropy Check
         entropy = self.calculate_entropy(text)
-        if entropy > self.entropy_threshold and len(text) > 40:
-            threats.append(
-                ThreatDetail(
-                    threat_type="HIGH_ENTROPY_ANOMALY",
-                    severity="MEDIUM",
-                    description=f"Text entropy ({entropy}) exceeds baseline threshold ({self.entropy_threshold}), indicating obfuscated or base64 payloads.",
-                    offset_range=(0, len(text)),
-                )
-            )
-
-        # Sanitize text by stripping zero-width codepoints and normalizing
-        sanitized = ZERO_WIDTH_REGEX.sub("", text)
-        sanitized = unicodedata.normalize("NFKC", sanitized)
+        # Entropy is descriptive, not evidence of malicious intent by itself.
+        # The canonical form removes only suspect marks and maps mixed-script
+        # lookalikes. Raw text remains available to the caller and is also scanned.
+        removed_positions = {match.start() for match in suspicious}
+        substitutions = {position: replacement for position, _, replacement in homoglyph_hits}
+        canonical = "".join(substitutions.get(i, char) for i, char in enumerate(text) if i not in removed_positions)
+        sanitized = unicodedata.normalize("NFKC", canonical)
 
         latency_ms = (time.perf_counter() - t0) * 1000.0
 
         return ScanResult(
             is_safe=len(threats) == 0,
-            scan_latency_ms=round(latency_ms, 3),
+            scan_latency_ms=latency_ms,
             threats_detected=threats,
             sanitized_text=sanitized,
             raw_character_count=len(text),
