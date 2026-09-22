@@ -129,7 +129,11 @@ def test_core_conversation_history_is_bounded():
 
 def test_benchmark_empty_and_zero_recall_are_honest(client, monkeypatch):
     data = client.get("/v1/benchmark?iterations=0").json()
-    assert data["total_vectors_tested"] == 0
+    assert data["fixture_count"] == 6
+    assert data["iterations"] == 0
+    assert data["total_fixture_evaluations"] == 0
+    assert len(data["fixtures"]) == 6
+    assert "attacks_blocked" not in data
     assert data["recall_rate"] is None
     assert data["p95_latency_ms"] is None
     assert "nist_compliance_score" not in data
@@ -139,13 +143,27 @@ def test_benchmark_empty_and_zero_recall_are_honest(client, monkeypatch):
     assert report.recall_rate == 0
     assert report.true_positives == report.false_positives == 0
     assert report.false_negatives == 5 and report.true_negatives == 1
+    assert report.fixture_count == 6
+    assert report.iterations == 1
+    assert report.total_fixture_evaluations == 6
     assert report.total_vectors_tested == 6
     assert client.get("/v1/benchmark?iterations=11").status_code == 422
 
 
 def test_benchmark_counts_reconcile():
     report = RedTeamSuite().run_benchmark(iterations=2)
-    assert report.total_vectors_tested == sum((report.true_positives, report.false_positives, report.true_negatives, report.false_negatives))
+    assert report.fixture_count == 6
+    assert report.iterations == 2
+    assert report.total_fixture_evaluations == 12
+    assert report.fixtures == [
+        {"category": "STEGANOGRAPHY", "name": "Zero-Width Unicode Carrier Injection"},
+        {"category": "DELIMITER_HIJACK", "name": "ChatML System Delimiter Breakout"},
+        {"category": "HOMOGLYPH", "name": "Cyrillic Script Filter Evasion"},
+        {"category": "CODE_EXECUTION", "name": "Obfuscated Base64 Eval Wrapper"},
+        {"category": "RECURSIVE_OVERRIDE", "name": "Recursive DAN Jailbreak"},
+        {"category": "BENIGN", "name": "Clean Operational Query"},
+    ]
+    assert report.total_fixture_evaluations == sum((report.true_positives, report.false_positives, report.true_negatives, report.false_negatives))
     assert report.recall_rate == 100 * report.true_positives / (report.true_positives + report.false_negatives)
 
 

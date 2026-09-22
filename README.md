@@ -1,8 +1,10 @@
 # ShadowPrompt
 
-ShadowPrompt is an adversarial inspection console for reviewing prompt-injection attempts and multi-turn attack paths. Select a scenario, replay its turns, inspect raw and normalized text, compare expected outcomes with observed rule matches, and export the trace.
+ShadowPrompt is a browser demo for exploring prompt-injection examples. Follow a guided replay from the original message to the local rule match, compare it with an ordinary request, or check your own text.
 
-The browser console runs entirely on your device. The Python package provides a separate local rule engine, API and research fixtures. GitHub Pages serves the browser build only. It does not deploy the Python API, forward requests to a model, connect to a SIEM, or establish a production security boundary.
+**What is live:** the GitHub Pages console runs its example replay and text checks in your browser. It shows the original and normalized text, local rule evidence and heuristic readings. Your text is not sent to an AI model. The site does not watch or block requests to another service, so it is not an operating inference defense proxy.
+
+The Python API is a separate local rule engine. Research scripts include deterministic fixtures and simulations. GitHub Pages does not deploy the Python API, connect to a SIEM, or establish a production security boundary.
 
 ## Operating modes
 
@@ -13,6 +15,12 @@ The browser console runs entirely on your device. The Python package provides a 
 | Python research scripts | Fixture benchmarks, scripted capture-the-flag targets and patch-template experiments | Deterministic demonstrations, not independent model evaluations |
 
 The browser and Python engines have separate implementations and rule coverage. Their results need not match. Both expose evidence instead of treating absence of a match as proof of safety.
+
+## Follow the guided replay
+
+Choose **Start guided replay** on the first screen. The guide selects a prompt that asks the AI to ignore earlier instructions. Step through the raw text, its normalized form and the rule match, then compare an ordinary request. The selected scenario, turn, arena and inspector update together. Use Back or close the guide to explore manually.
+
+The measurements beside the replay are local diagnostics, not independent risk scores. The turn count tracks the example position, word similarity compares the prompt with four local reference phrases, and character variety describes the text distribution. These values do not establish malicious intent or model behavior. Local inspection time excludes a model request because none is connected.
 
 ## Local setup
 
@@ -123,7 +131,17 @@ python run_gambit_arena.py
 python run_self_improving_engine.py
 ```
 
-The benchmark repeats six local fixtures; repeating them increases sample count, not coverage. CTF outputs describe a scripted target, not an LLM. The patch experiment selects from fixed attack and regex templates, checks five benign fixtures and applies rules in memory only. Synthetic canaries are mock values; the helper can search supplied text for retained canaries but does not monitor external traffic. `emit_stix_telemetry()` produces a local STIX-shaped dictionary, not a validated transport integration.
+The Python benchmark contains five fixed attack strings and one benign string: zero-width Unicode, delimiter breakout, mixed-script lookalikes, a Base64 execution wrapper, a repeated jailbreak phrase and an ordinary operational question. Repeating these fixtures increases evaluations, not the number or diversity of examples. The counter names report fixture evaluations and rule matches. The published output also lists the six fixture names, iterations, confusion counts and timing scope.
+
+Reproduce one pass from the repository root with:
+
+```sh
+python run_demo.py --cli --iterations 1
+```
+
+At commit `877da45`, that run reported 5 true positives, 0 false positives, 1 true negative and 0 false negatives across those six fixtures. The displayed 100% precision and recall therefore describe matches to five preset labels and one benign example only. They do not measure general attack detection, real model behavior or blocked requests. The single benign example is not a meaningful false-positive rate study. Rerun the command against the revision you are evaluating. Timing values are specific to the host and run.
+
+CTF outputs describe a scripted target, not an LLM. The patch experiment selects from fixed attack and regex templates, checks five benign fixtures and applies rules in memory only. Synthetic canaries are mock values; the helper can search supplied text for retained canaries but does not monitor external traffic. `emit_stix_telemetry()` produces a local STIX-shaped dictionary, not a validated transport integration.
 
 ## Verification
 

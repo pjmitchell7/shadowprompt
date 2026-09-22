@@ -53,6 +53,12 @@ def assert_no_overflow(page):
     assert page.locator("#scenario").bounding_box()["width"] > 200
 
 
+def assert_first_action_in_view(page):
+    bounds = page.locator("#start-walkthrough").bounding_box()
+    viewport_height = page.evaluate("window.innerHeight")
+    assert bounds["y"] >= 0 and bounds["y"] + bounds["height"] <= viewport_height, "Guided replay action must be visible on first load"
+
+
 def assert_control_contrast(page):
     contrast = page.locator("select, textarea, input").evaluate_all("""controls => {
       const luminance = color => {
@@ -98,12 +104,58 @@ def run_checks(url, artifacts):
         assert response.status == 200
         expect(page.get_by_role("heading", name="See how prompts try to redirect an AI")).to_be_visible()
         expect(page.locator("#turn-list button")).to_have_count(4)
+        expect(page.locator("#guided-panel")).to_be_hidden()
+        expect(page.get_by_role("button", name="Start guided replay", exact=True)).to_be_visible()
+        expect(page.get_by_role("button", name="Play example", exact=True)).to_have_count(1)
+        assert page.get_by_role("checkbox").count() == 0
         assert_no_overflow(page)
+        assert_first_action_in_view(page)
         assert_control_contrast(page)
+        if artifacts:
+            artifacts.mkdir(parents=True, exist_ok=True)
+            page.screenshot(path=str(artifacts / "opening-1440.png"))
+        expect(page.locator(".metric-help")).to_have_count(4)
+        for metric_help in page.locator(".metric-help").all():
+            metric_help.locator("summary").click()
+            expect(metric_help.locator("p")).to_be_visible()
+            metric_help.locator("summary").click()
         page.wait_for_function("window.__frameProbe.pending.size === 0")
         frame_count = page.evaluate("window.__frameProbe.delivered")
         page.wait_for_timeout(300)
         assert page.evaluate("window.__frameProbe.delivered") == frame_count, "Idle rendering must settle"
+
+        # The guided walkthrough synchronizes its prompt, selected turn and evidence.
+        page.locator("#start-walkthrough").click()
+        expect(page.locator("#guided-panel")).to_be_visible()
+        expect(page.locator("#guided-progress")).to_have_text("GUIDED REPLAY / STEP 1 OF 4")
+        expect(page.locator("#scenario")).to_have_value("hierarchy")
+        expect(page.locator("#turn-ref")).to_have_text("TURN 02")
+        expect(page.locator("#tab-raw")).to_have_attribute("aria-selected", "true")
+        expect(page.locator("#evidence")).to_contain_text("Ignore all previous instructions")
+        expect(page.locator("#guided-next")).to_be_focused()
+        page.locator("#guided-next").click()
+        expect(page.locator("#guided-progress")).to_have_text("GUIDED REPLAY / STEP 2 OF 4")
+        expect(page.locator("#tab-normalized")).to_have_attribute("aria-selected", "true")
+        expect(page.locator("#guided-copy")).to_contain_text("left it unchanged")
+        page.locator("#guided-next").click()
+        expect(page.locator("#guided-progress")).to_have_text("GUIDED REPLAY / STEP 3 OF 4")
+        expect(page.locator("#tab-rules")).to_have_attribute("aria-selected", "true")
+        expect(page.locator("#evidence")).to_contain_text("INJ-001")
+        expect(page.locator("#guided-copy")).to_contain_text("below its 0.72 threshold")
+        expect(page.locator("#guided-copy")).to_contain_text("does not block a request")
+        page.locator("#guided-next").click()
+        expect(page.locator("#guided-progress")).to_have_text("GUIDED REPLAY / STEP 4 OF 4")
+        expect(page.locator("#scenario")).to_have_value("benign")
+        expect(page.locator("#turn-ref")).to_have_text("TURN 01")
+        expect(page.locator("#verdict")).to_have_text("NO RULE MATCHED")
+        expect(page.locator("#guided-copy")).to_contain_text("does not prove the message is safe")
+        page.locator("#guided-back").click()
+        expect(page.locator("#scenario")).to_have_value("hierarchy")
+        expect(page.locator("#tab-rules")).to_have_attribute("aria-selected", "true")
+        page.locator("#guided-close").click()
+        expect(page.locator("#guided-panel")).to_be_hidden()
+        expect(page.locator("#start-walkthrough")).to_be_focused()
+        page.locator("#scenario").select_option("hierarchy")
 
         # Selection by keyboard retains focus after updating all evidence.
         turn_button = page.locator('[data-turn="1"]')
@@ -119,7 +171,7 @@ def run_checks(url, artifacts):
         # Reset and pause invalidate outstanding advancement timers.
         page.locator("#reset").click()
         page.locator("#play").click()
-        expect(page.locator("#play")).to_have_text("Pause")
+        expect(page.get_by_role("button", name="Pause", exact=True)).to_have_count(1)
         page.locator("#play").click()
         page.wait_for_timeout(1950)
         expect(page.locator("#turn-ref")).to_have_text("TURN 01")
@@ -130,7 +182,7 @@ def run_checks(url, artifacts):
         page.locator("#play").click()
         page.wait_for_function("document.querySelector('#replay-state').textContent === 'Sequence complete'", timeout=10000)
         expect(page.locator("#step")).to_be_disabled()
-        expect(page.locator("#play")).to_have_text("Replay sequence")
+        expect(page.locator("#play")).to_have_text("Replay example")
         final_turn = page.locator("#turn-ref").inner_text()
         page.wait_for_timeout(1950)
         expect(page.locator("#turn-ref")).to_have_text(final_turn)
@@ -158,7 +210,7 @@ def run_checks(url, artifacts):
         expect(page.locator("#verdict")).to_have_text("NO RULE MATCHED")
         page.locator("#threshold").fill("0.93")
         page.get_by_role("button", name="Run inspection", exact=True).click()
-        expect(page.locator("#similarity-note")).to_have_text("Threshold 0.93")
+        expect(page.locator("#similarity-note")).to_have_text("Overlap threshold 0.93")
         page.locator("#load-payload").click()
         assert page.locator("#custom-payload").input_value() != "Explain how to bake bread with flour and water."
 
@@ -190,9 +242,12 @@ def run_checks(url, artifacts):
 
         for width in [360, 320, 768]:
             page.set_viewport_size({"width": width, "height": 900})
+            page.evaluate("window.scrollTo(0, 0)")
             page.wait_for_timeout(200)
             assert_no_overflow(page)
+            assert_first_action_in_view(page)
             if artifacts and width == 360:
+                page.screenshot(path=str(artifacts / "opening-360.png"))
                 page.screenshot(path=str(artifacts / "mobile.png"), full_page=True)
         page.set_viewport_size({"width": 1440, "height": 900})
         page.locator('[data-view="attacker"]').click()

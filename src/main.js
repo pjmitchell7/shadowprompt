@@ -32,19 +32,24 @@ app.innerHTML = /* HTML */ ` <header class="app-header">
         <p class="eyebrow">ShadowPrompt / Prompt injection inspection</p>
         <h1>See how prompts try to redirect an AI</h1>
         <p class="intro-copy">
-          Prompt injection is text that tries to redirect an AI from its
-          instructions. ShadowPrompt helps you test examples or your own text
-          against local rules and inspect what gets flagged.
+          Prompt injection is text that tries to make an AI ignore its
+          instructions. ShadowPrompt checks examples or your own text against
+          local rules so you can see what gets flagged and why. It does not
+          connect to or block an AI.
         </p>
       </div>
       <div class="intro-start">
         <p class="field-label">Start here</p>
         <p class="intro-guide">
-          Choose an example and press <strong>Play sequence</strong>, or
-          <a id="try-own-text" href="#custom-payload">try your own text</a>.
+          <button id="start-walkthrough" class="primary" type="button">
+            Start guided replay
+          </button>
         </p>
         <p class="intro-mode">
-          Runs in your browser. No live AI model is connected.
+          See which local rule matched, then compare an ordinary request.
+        </p>
+        <p class="intro-own-text">
+          <a id="try-own-text" href="#custom-payload">Check your own text</a>
         </p>
       </div>
     </div>
@@ -55,7 +60,7 @@ app.innerHTML = /* HTML */ ` <header class="app-header">
       </div>
       <div class="replay-controls">
         <span class="replay-position" id="replay-position"></span
-        ><button id="play" class="primary">Play sequence</button
+        ><button id="play" class="primary" type="button">Play example</button
         ><button id="step">Step</button
         ><button id="reset" class="quiet">Reset</button
         ><button id="export" class="quiet">Export trace</button>
@@ -67,28 +72,53 @@ app.innerHTML = /* HTML */ ` <header class="app-header">
         <p class="metric-value">
           <span id="metric-latency">0.000</span><small>ms</small>
         </p>
-        <span class="metric-note" id="latency-note"
-          >Measured in this browser</span
-        >
+        <details class="metric-help">
+          <summary id="latency-note">Measured in this browser</summary>
+          <p>
+            Elapsed time for local text normalization and rule checks. It does
+            not include a model or network request, and it does not measure
+            detection quality.
+          </p>
+        </details>
       </div>
       <div class="metric">
-        <p class="metric-label">Gambit depth</p>
+        <p class="metric-label">Example turn</p>
         <p class="metric-value">
           <span id="metric-depth">01</span><small>turns</small>
         </p>
-        <span class="metric-note">Cumulative scenario path</span>
+        <details class="metric-help">
+          <summary>About turn count</summary>
+          <p>
+            Your place in this example. It counts messages in the selected
+            sequence, not AI reasoning depth or how dangerous a message is.
+          </p>
+        </details>
       </div>
       <div class="metric">
-        <p class="metric-label">Lexical cosine</p>
+        <p class="metric-label">Word similarity</p>
         <p class="metric-value" id="metric-similarity">0.000</p>
-        <span class="metric-note" id="similarity-note">Threshold 0.72</span>
+        <details class="metric-help">
+          <summary id="similarity-note">Local reference word overlap</summary>
+          <p>
+            Compares normalized words with four local reference phrases. The
+            threshold controls this signal only. It is not a meaning model or a
+            safety verdict by itself.
+          </p>
+        </details>
       </div>
       <div class="metric">
-        <p class="metric-label">Payload entropy</p>
+        <p class="metric-label">Character variety</p>
         <p class="metric-value">
           <span id="metric-entropy">0.00</span><small>bits</small>
         </p>
-        <span class="metric-note">Per Unicode code point</span>
+        <details class="metric-help">
+          <summary>About character variety</summary>
+          <p>
+            Measures the distribution of characters in the text. Code, names
+            and ordinary multilingual messages can also have varied text; this
+            number does not reveal intent or prove an attack.
+          </p>
+        </details>
       </div>
     </section>
     <div class="workspace-grid">
@@ -166,6 +196,19 @@ app.innerHTML = /* HTML */ ` <header class="app-header">
           <p id="turn-description"></p>
           <div class="expected" id="expected"></div>
         </div>
+        <section class="guided-panel" id="guided-panel" hidden aria-labelledby="guided-heading">
+          <div class="guided-topline">
+            <p class="field-label" id="guided-progress"></p>
+            <button id="guided-close" class="quiet" type="button">Close guide</button>
+          </div>
+          <h3 id="guided-heading"></h3>
+          <p class="guided-copy" id="guided-copy"></p>
+          <p class="sr-only" id="guided-announcement" role="status" aria-live="polite"></p>
+          <div class="guided-actions">
+            <button id="guided-back" type="button">Back</button>
+            <button id="guided-next" class="primary" type="button"></button>
+          </div>
+        </section>
         <div
           class="inspector-tabs"
           role="tablist"
@@ -280,6 +323,40 @@ const verdictLabels = {
   review: "REVIEW",
   "no-match": "NO RULE MATCHED",
 };
+const guideSteps = [
+  {
+    scenario: "hierarchy",
+    turn: 1,
+    tab: "raw",
+    title: "Read the suspicious instruction",
+    copy: "This message claims to be an administrator and asks the AI to ignore its earlier instructions. The Raw input tab shows the text the local checks received.",
+    next: "See the normalized text",
+  },
+  {
+    scenario: "hierarchy",
+    turn: 1,
+    tab: "normalized",
+    title: "Check what changed",
+    copy: "This example uses ordinary characters, so normalization left it unchanged. Disguised characters may change in other examples. A normalized copy is evidence for inspection, not a safe replacement.",
+    next: "See the matching rule",
+  },
+  {
+    scenario: "hierarchy",
+    turn: 1,
+    tab: "rules",
+    title: "See why it was flagged",
+    copy: "",
+    next: "Compare an ordinary request",
+  },
+  {
+    scenario: "benign",
+    turn: 0,
+    tab: "raw",
+    title: "Compare an ordinary request",
+    copy: "",
+    next: "Start the guide again",
+  },
+];
 const nodeDescriptions = {
   attacker: "Attacker: the active turn supplies untrusted prompt content.",
   guardrail: "Guardrail: local heuristic and lexical inspection boundary.",
@@ -295,6 +372,7 @@ const state = {
   custom: null,
   customTrace: [],
   threshold: 0.72,
+  guideStep: null,
 };
 let arena;
 let exportUrl;
@@ -407,6 +485,36 @@ function renderEvidence() {
   }
 }
 
+function renderGuide() {
+  const open = state.guideStep !== null;
+  const panel = $("guided-panel");
+  panel.hidden = !open;
+  if (!open) return;
+
+  const step = guideSteps[state.guideStep];
+  const result = currentResult();
+  $("guided-progress").textContent = `GUIDED REPLAY / STEP ${state.guideStep + 1} OF ${guideSteps.length}`;
+  $("guided-heading").textContent = step.title;
+  let copy = step.copy;
+  if (state.guideStep === 2) {
+    const matched = result.rules.length
+      ? result.rules.map((rule) => `${rule.id}, ${rule.name}`).join("; ")
+      : "no local rule";
+    const similarity = result.similarity >= result.threshold
+      ? `Word similarity ${result.similarity.toFixed(3)} met its ${result.threshold.toFixed(2)} threshold.`
+      : `Word similarity ${result.similarity.toFixed(3)} was below its ${result.threshold.toFixed(2)} threshold, so it did not trigger this result.`;
+    copy = `The local check matched ${matched}. ${similarity} The result shown here changes this demo only. It does not block a request sent to a model.`;
+  } else if (state.guideStep === 3) {
+    copy = result.rules.length
+      ? `${result.rules.length} local rule${result.rules.length === 1 ? "" : "s"} matched this ordinary request. Review the text and evidence before relying on the result.`
+      : "No local rule matched this ordinary request. That result does not prove the message is safe in every context.";
+  }
+  $("guided-copy").textContent = copy;
+  $("guided-announcement").textContent = `${$("guided-progress").textContent}. ${step.title}. ${copy}`;
+  $("guided-back").disabled = state.guideStep === 0;
+  $("guided-next").textContent = step.next;
+}
+
 function render() {
   const focusedTurn = document.activeElement?.dataset?.turn;
   const result = currentResult();
@@ -422,9 +530,8 @@ function render() {
   $("play").textContent = state.playing
     ? "Pause"
     : state.turn === count - 1
-      ? "Replay sequence"
-      : "Play sequence";
-  $("play").setAttribute("aria-pressed", String(state.playing));
+      ? "Replay example"
+      : "Play example";
   $("step").disabled = state.turn === count - 1;
   $("arena-turn").textContent = state.custom
     ? "CUSTOM INPUT"
@@ -436,7 +543,7 @@ function render() {
       : "Measured in this browser";
   $("metric-depth").textContent = String(state.turn + 1).padStart(2, "0");
   $("metric-similarity").textContent = result.similarity.toFixed(3);
-  $("similarity-note").textContent = `Threshold ${result.threshold.toFixed(2)}`;
+  $("similarity-note").textContent = `Overlap threshold ${result.threshold.toFixed(2)}`;
   $("metric-entropy").textContent = result.entropy.toFixed(2);
   $("verdict").textContent = verdictLabels[result.verdict];
   $("verdict").dataset.verdict = result.verdict;
@@ -456,10 +563,10 @@ function render() {
       turn.expectedVerdict !== result.verdict,
   );
   $("expected").textContent = state.custom
-    ? `${result.rules.length} rule match${result.rules.length === 1 ? "" : "es"} / threshold ${result.threshold.toFixed(2)}`
+    ? `Your text / local result: ${verdictLabels[result.verdict].toLowerCase()}`
     : turn.expectedVerdict
-      ? `Expected: ${verdictLabels[turn.expectedVerdict] ?? turn.expectedVerdict} / ${turn.expectedVerdict === result.verdict ? "Observed match" : "Observed disagreement"}`
-      : `${result.rules.length} rule match${result.rules.length === 1 ? "" : "es"} / fixture expectation not specified`;
+      ? `Example expectation: ${verdictLabels[turn.expectedVerdict].toLowerCase()} / Local result: ${verdictLabels[result.verdict].toLowerCase()}`
+      : `Local result: ${verdictLabels[result.verdict].toLowerCase()} / No example expectation`;
   $("sequence-count").textContent =
     `${count} turns / ${state.scenario.category}`;
   $("turn-list").replaceChildren(
@@ -495,6 +602,7 @@ function render() {
     }),
   );
   renderEvidence();
+  renderGuide();
   if (focusedTurn !== undefined) {
     document
       .querySelector(`[data-turn="${focusedTurn}"]`)
@@ -509,11 +617,30 @@ function render() {
 
 function selectTurn(index, message = true) {
   stopPlayback();
+  state.guideStep = null;
   state.turn = index;
   state.custom = null;
   render();
   if (message)
     announce(`Turn ${index + 1}. ${verdictLabels[currentResult().verdict]}.`);
+}
+
+function showGuideStep(index, { scroll = false } = {}) {
+  stopPlayback();
+  const step = guideSteps[index];
+  const scenario = SCENARIOS.find((item) => item.id === step.scenario);
+  if (scenario !== state.scenario) {
+    state.scenario = scenario;
+    inspectScenario();
+  }
+  $("scenario").value = scenario.id;
+  state.turn = step.turn;
+  state.tab = step.tab;
+  state.custom = null;
+  state.guideStep = index;
+  render();
+  if (scroll) $("guided-panel").scrollIntoView({ block: "center", behavior: "instant" });
+  $("guided-next").focus({ preventScroll: true });
 }
 
 function scheduleAdvance() {
@@ -541,6 +668,7 @@ SCENARIOS.forEach((scenario, index) => {
 
 on($("scenario"), "change", () => {
   stopPlayback();
+  state.guideStep = null;
   state.scenario = SCENARIOS.find(
     (scenario) => scenario.id === $("scenario").value,
   );
@@ -552,6 +680,7 @@ on($("scenario"), "change", () => {
   feedback("Scenario loaded. Replay is paused at the first turn.");
 });
 on($("play"), "click", () => {
+  state.guideStep = null;
   if (state.playing) stopPlayback();
   else {
     if (state.turn === state.scenario.turns.length - 1) state.turn = 0;
@@ -574,7 +703,9 @@ on($("turn-list"), "click", (event) => {
 });
 document.querySelectorAll("[data-tab]").forEach((button) => {
   on(button, "click", () => {
+    state.guideStep = null;
     state.tab = button.dataset.tab;
+    renderGuide();
     renderEvidence();
   });
   on(button, "keydown", (event) => {
@@ -637,8 +768,22 @@ document.querySelectorAll("[data-node]").forEach((button) =>
 );
 on($("try-own-text"), "click", (event) => {
   event.preventDefault();
+  state.guideStep = null;
+  renderGuide();
   $("custom-payload").scrollIntoView({ block: "center", behavior: "instant" });
   $("custom-payload").focus({ preventScroll: true });
+});
+on($("start-walkthrough"), "click", () => showGuideStep(0, { scroll: true }));
+on($("guided-next"), "click", () =>
+  showGuideStep(state.guideStep >= guideSteps.length - 1 ? 0 : state.guideStep + 1),
+);
+on($("guided-back"), "click", () =>
+  showGuideStep(Math.max(0, state.guideStep - 1)),
+);
+on($("guided-close"), "click", () => {
+  state.guideStep = null;
+  render();
+  $("start-walkthrough").focus();
 });
 on($("load-payload"), "click", () => {
   $("custom-payload").value = state.scenario.turns[state.turn].payload;
@@ -647,6 +792,8 @@ on($("load-payload"), "click", () => {
 });
 on($("inspect-form"), "submit", (event) => {
   event.preventDefault();
+  state.guideStep = null;
+  renderGuide();
   const payload = $("custom-payload").value;
   const threshold = Number($("threshold").value);
   if (!payload.trim()) {

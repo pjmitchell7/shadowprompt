@@ -13,9 +13,10 @@ from shadowprompt.fuzzer.attack_generator import AttackGenerator
 
 @dataclass
 class BenchmarkReport:
-    total_vectors_tested: int
-    attacks_blocked: int
-    benign_passed: int
+    fixture_count: int
+    iterations: int
+    total_fixture_evaluations: int
+    fixtures: list[dict[str, str]]
     true_positives: int
     false_positives: int
     true_negatives: int
@@ -26,8 +27,23 @@ class BenchmarkReport:
     avg_latency_ms: Optional[float]
     p95_latency_ms: Optional[float]
     p99_latency_ms: Optional[float]
-    scope: str = "Repeated local fixtures; rule matches, not observed model compromises"
+    scope: str = "Repeated local fixtures; rule matches only, not model attack prevention"
     timing_scope: str = "Python inspect_stream only; nearest-rank percentiles; no network or model inference"
+
+    @property
+    def total_vectors_tested(self) -> int:
+        """Compatibility alias; evaluations can repeat the same fixture."""
+        return self.total_fixture_evaluations
+
+    @property
+    def attacks_blocked(self) -> int:
+        """Compatibility alias; no external model traffic is blocked here."""
+        return self.true_positives
+
+    @property
+    def benign_passed(self) -> int:
+        """Compatibility alias for true negatives in the local fixture set."""
+        return self.true_negatives
 
 
 class RedTeamSuite:
@@ -38,7 +54,8 @@ class RedTeamSuite:
     def run_benchmark(self, iterations: int = 5) -> BenchmarkReport:
         if not isinstance(iterations, int) or isinstance(iterations, bool) or not 0 <= iterations <= 100:
             raise ValueError("iterations must be an integer from 0 to 100")
-        samples = self.generator.get_test_suite() * iterations
+        fixtures = self.generator.get_test_suite()
+        samples = fixtures * iterations
         tp = fp = tn = fn = 0
         latencies = []
         for sample in samples:
@@ -60,7 +77,9 @@ class RedTeamSuite:
             return latencies[math.ceil(len(latencies) * fraction) - 1] if latencies else None
 
         return BenchmarkReport(
-            total_vectors_tested=len(samples), attacks_blocked=tp, benign_passed=tn,
+            fixture_count=len(fixtures), iterations=iterations,
+            total_fixture_evaluations=len(samples),
+            fixtures=[{"category": sample.category, "name": sample.attack_name} for sample in fixtures],
             true_positives=tp, false_positives=fp, true_negatives=tn, false_negatives=fn,
             recall_rate=recall * 100 if recall is not None else None,
             precision_rate=precision * 100 if precision is not None else None,

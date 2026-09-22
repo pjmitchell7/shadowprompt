@@ -112,3 +112,13 @@ The initial workspace assumes familiarity with adversarial replay and payload in
 - Preserve the restrained design, responsive layout, keyboard access and existing inspection behavior.
 
 Acceptance: the opening answers what the tool does, what prompt injection means and how to try it. Any new shortcut reaches a working control with appropriate keyboard focus. Desktop and mobile views remain readable without horizontal overflow, and production browser regression checks pass.
+
+## Follow-up: Guided evidence and measurement context
+
+Keep the browser demo and Python research modes visibly separate from a deployed proxy or a connected model. Give new visitors one guided route through a real suspicious turn's raw input, normalized copy, matched local rule and verdict, then a benign comparison. Keep the scenario expectation separate from the local observed result, name the rule that triggered quarantine and explain when an independent signal such as word similarity did not trigger it. Transitions are visitor-paced; the 3D scene, timeline and inspector stay synchronized.
+
+Explain local elapsed time, example turn count, lexical reference-word overlap and character distribution in plain language at the metrics themselves. Include each measure's meaningful limits. The Play control is a native button with direct Play, Pause and Replay names, without checkbox or toggle-control semantics.
+
+Benchmark reports identify unique in-repository fixtures, the repeat count, total fixture evaluations, classification counts, scope and timing scope. A repeated sample count is never described as unique attack-vector coverage. A reproduced perfect fixture score is labeled with its exact small sample and does not imply model-level protection or effective blocking.
+
+Acceptance: a visitor can complete and reverse the guide by keyboard, inspect a real rule match, compare a benign no-match and then close the guide without corrupting manual replay. Metric explanations remain accessible and responsive. Repository and API benchmark output names rule matches and fixture evaluations accurately, publishes the included fixture names, and passes both zero-sample and repeated-sample reconciliation checks.

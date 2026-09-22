@@ -177,15 +177,15 @@ button[aria-pressed="true"] {
 }
 .shell {
   max-width: 1728px;
-  padding: 24px 36px;
+  padding: 16px 36px 24px;
   margin: auto;
 }
 .page-intro {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 24px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .eyebrow {
   font: 12px var(--mono);
@@ -212,19 +212,25 @@ h1 {
   flex: 0 0 300px;
 }
 .intro-guide {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
+  margin: 0 0 10px;
+}
+.intro-guide button {
+  width: 100%;
+  min-height: 44px;
+}
+.intro-own-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 2px 0 0;
+  min-height: 30px;
+  font-size: 13px;
   color: var(--muted);
 }
-.intro-guide strong {
-  color: #e0e7e9;
-  font-weight: 500;
-}
-.intro-guide a {
+.intro-own-text a {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 30px;
   color: var(--green);
 }
 .intro-mode {
@@ -236,13 +242,13 @@ h1 {
 .control-bar {
   border: 1px solid var(--line);
   background: var(--surface);
-  padding: 16px 18px;
+  padding: 12px 18px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
   border-radius: var(--radius);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .scenario-field {
   min-width: 0;
@@ -420,10 +426,10 @@ select {
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0 0 20px;
+  margin: 0 0 16px;
 }
 .metric {
-  padding: 14px 20px;
+  padding: 12px 20px;
   border-right: 1px solid var(--line);
   min-width: 0;
 }
@@ -449,12 +455,28 @@ select {
   color: #a2b6c2;
   margin-left: 4px;
 }
-.metric-note {
+.metric-help {
+  margin-top: 8px;
+}
+.metric-help summary {
   display: block;
   font: 12px var(--mono);
   line-height: 1.6;
   color: #a4b1b9;
-  margin-top: 10px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+.metric-help summary:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+.metric-help p {
+  margin: 8px 0 0;
+  color: #d0dbe0;
+  font-size: 13px;
+  line-height: 1.5;
 }
 .sequence {
   margin-top: 20px;
@@ -557,8 +579,52 @@ select {
   color: #afbdc5;
   margin: 0;
 }
+.guided-panel {
+  padding: 14px 20px 18px;
+  border-bottom: 1px solid var(--line);
+  background: #12191e;
+}
+.guided-panel[hidden] {
+  display: none;
+}
+.guided-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.guided-topline .field-label {
+  margin: 0;
+}
+.guided-topline button {
+  min-height: 36px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+.guided-panel h3 {
+  margin: 0 0 7px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.guided-copy {
+  margin: 0;
+  color: #bac8cf;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.guided-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+.guided-actions button {
+  min-height: 42px;
+}
 .expected {
-  font: 12px var(--mono);
+  font: 12px/1.7 var(--mono);
   margin-top: 14px;
   color: #a1b4bd;
 }
@@ -863,6 +929,9 @@ textarea::placeholder {
   .intro-start .field-label {
     margin-bottom: 0;
   }
+  .metric-help p {
+    font-size: 13px;
+  }
   .control-bar {
     align-items: stretch;
     flex-direction: column;
@@ -926,6 +995,9 @@ textarea::placeholder {
   .intro-copy {
     font-size: 14px;
     max-width: 300px;
+  }
+  .intro-own-text {
+    margin-top: 0;
   }
   .eyebrow {
     font-size: 12px;
@@ -1051,6 +1123,9 @@ textarea::placeholder {
   .selection-info {
     padding: 0 14px 14px;
     font-size: 12px;
+  }
+  .guided-panel {
+    padding: 14px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
