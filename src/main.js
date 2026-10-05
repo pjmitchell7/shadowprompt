@@ -211,7 +211,7 @@ app.innerHTML = /* HTML */ ` <header class="app-header">
             <p class="arena-help">
               Drag to orbit. Scroll to zoom. Select a node to inspect its role.
             </p>
-            <div class="arena-fallback" id="arena-fallback" hidden aria-label="Local inspection flow"></div>
+            <div class="arena-fallback" id="arena-fallback" role="region" aria-label="Local inspection flow" tabindex="-1" hidden></div>
           </div>
           <div class="arena-toolbar">
             <div class="view-controls" aria-label="Camera views">
@@ -377,6 +377,7 @@ const state = {
   guideStep: null,
 };
 let arena;
+let cameraFocusBeforeLoss = null;
 let exportUrl;
 let exportTimer;
 let disposed = false;
@@ -971,8 +972,16 @@ render();
 function setRendererStatus(status) {
   $("renderer-status").textContent = status;
   const unavailable = /unavailable|context lost/i.test(status);
-  $("arena").closest(".arena-panel").classList.toggle("is-fallback", unavailable);
-  $("arena-fallback").hidden = !unavailable;
+  const fallback = $("arena-fallback");
+  const panel = $("arena").closest(".arena-panel");
+  const wasUnavailable = panel.classList.contains("is-fallback");
+  const focusedCamera = unavailable && document.activeElement?.matches("[data-view], #reset-camera")
+    ? document.activeElement : null;
+  const restoreFocus = !unavailable && document.activeElement === fallback
+    ? cameraFocusBeforeLoss : null;
+  if (focusedCamera) cameraFocusBeforeLoss = focusedCamera;
+  panel.classList.toggle("is-fallback", unavailable);
+  fallback.hidden = !unavailable;
   renderFallbackFlow();
   document.querySelectorAll("[data-view], #reset-camera").forEach((button) => {
     button.disabled = unavailable;
@@ -980,6 +989,10 @@ function setRendererStatus(status) {
       ? "3D camera unavailable. Inspection remains available."
       : "";
   });
+  if (focusedCamera) fallback.focus({ preventScroll: true });
+  if (restoreFocus) restoreFocus.focus({ preventScroll: true });
+  if (!unavailable) cameraFocusBeforeLoss = null;
+  if (unavailable !== wasUnavailable) announce(status);
   document.querySelector(".arena-help").textContent = unavailable
     ? "3D camera unavailable. Use the role controls and turn sequence to inspect."
     : "Drag to orbit. Scroll to zoom. Select a node to inspect its role.";

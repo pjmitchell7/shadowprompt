@@ -829,8 +829,9 @@ textarea::placeholder {
 .arena-panel.is-fallback .arena-overlay,
 .arena-panel.is-fallback .arena-help,
 .arena-panel.is-fallback .arena-toolbar,
+.arena-panel.is-fallback .arena-role-label,
 .arena-panel.is-fallback canvas {
-  display: none;
+  display: none !important;
 }
 .arena-fallback[hidden] {
   display: none;

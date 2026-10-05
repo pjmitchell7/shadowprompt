@@ -232,6 +232,7 @@ export class Arena {
 
   addLabel(text, position) {
     const element = document.createElement('span');
+    element.className = 'arena-role-label';
     element.textContent = text;
     element.setAttribute('aria-hidden', 'true');
     element.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;font:500 12px/1.3 monospace;letter-spacing:.06em;color:#c0cdd6;background:#10171ee8;padding:4px 6px;border:1px solid #34434f;white-space:nowrap;';
