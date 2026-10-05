@@ -32,6 +32,32 @@ class PreInferenceProxy:
         self.md_guard = MarkdownExfilGuard()
         self.axiom_guard = SemanticAxiomGuard()
 
+    def _scan_forms(self, text: str):
+        """Retain each bounded scanner form so findings keep their own offsets."""
+        scanned_forms = []
+        value = text
+        for _ in range(5):  # Initial scan and at most four stabilization scans.
+            if len(value) > MAX_PROMPT_CHARS:
+                raise ValueError("Canonical form exceeds the character limit")
+            result = self.scanner.scan(value)
+            scanned_forms.append((value, result))
+            next_form = result.sanitized_text
+            if next_form == value:
+                last = len(scanned_forms) - 1
+                forms = [
+                    (
+                        "raw" if index == 0 else
+                        "canonical" if index == last else
+                        f"canonical-stage-{index}",
+                        form_text,
+                        scan,
+                    )
+                    for index, (form_text, scan) in enumerate(scanned_forms)
+                ]
+                return value, forms
+            value = next_form
+        raise ValueError("Canonical form did not stabilize within four passes")
+
     def inspect_stream(
         self, raw_data: Union[str, bytes], is_multi_turn: bool = False,
     ) -> Tuple[str, List[Dict[str, Any]]]:
@@ -42,28 +68,18 @@ class PreInferenceProxy:
         text = raw_data.decode("utf-8", errors="replace") if isinstance(raw_data, bytes) else raw_data
         if len(text) > MAX_PROMPT_CHARS:
             raise ValueError(f"Input exceeds {MAX_PROMPT_CHARS} characters")
-        scan_res = self.scanner.scan(text)
-        canonical = scan_res.sanitized_text
-        # NFKC can expose a second Unicode heuristic (for example fullwidth
-        # Latin around an invisible mark). Resolve transformations before the
-        # final delimiter pass, with a fixed iteration and expansion bound.
-        for _ in range(4):
-            if len(canonical) > MAX_PROMPT_CHARS:
-                raise ValueError("Canonical form exceeds the character limit")
-            next_form = self.scanner.scan(canonical).sanitized_text
-            if next_form == canonical:
-                break
-            canonical = next_form
-        else:
-            raise ValueError("Canonical form did not stabilize within four passes")
+        canonical, forms = self._scan_forms(text)
         threats = []
         seen = set()
 
         def append(finding):
-            key = (finding["type"], finding["description"], finding.get("snippet"), str(finding.get("offset")))
+            def identity(item):
+                stage = item["form"] if item["form"].startswith("canonical-stage-") else None
+                return (item["type"], item["description"], item.get("snippet"), str(item.get("offset")), stage)
+            key = identity(finding)
             if key in seen:
                 for existing in threats:
-                    existing_key = (existing["type"], existing["description"], existing.get("snippet"), str(existing.get("offset")))
+                    existing_key = identity(existing)
                     if existing_key == key and finding["form"] not in existing["forms"]:
                         existing["forms"].append(finding["form"])
                         break
@@ -72,18 +88,17 @@ class PreInferenceProxy:
             finding["forms"] = [finding["form"]]
             threats.append(finding)
 
-        forms = [("raw", text)]
-        if canonical != text:
-            forms.append(("canonical", canonical))
-        for form, value in forms:
-            scanned = scan_res if form == "raw" else self.scanner.scan(value)
+        for form, value, scanned in forms:
             for threat in scanned.threats_detected:
-                append({
+                finding = {
                     "type": threat.threat_type, "severity": threat.severity,
                     "description": threat.description, "offset": threat.offset_range,
                     "snippet": value[slice(*threat.offset_range)], "form": form,
                     "extracted_payload": threat.extracted_payload,
-                })
+                }
+                if form.startswith("canonical-stage-"):
+                    finding["inspected_text"] = value
+                append(finding)
             for threat in self.delimiter_guard.inspect(value):
                 append({
                     "type": "DELIMITER_HIJACK", "severity": threat.severity,
@@ -104,14 +119,32 @@ class PreInferenceProxy:
                         "description": threat.description, "snippet": threat.snippet, "form": form,
                     })
             for encoded, decoded in self.b64_decoder.inspect(value):
-                inner_scan = self.scanner.scan(decoded)
-                inner_delimiters = self.delimiter_guard.inspect(decoded) + self.delimiter_guard.inspect(inner_scan.sanitized_text)
-                if (not inner_scan.is_safe or inner_delimiters or
+                decoded_canonical, decoded_forms = self._scan_forms(decoded)
+                decoded_findings = []
+                for decoded_form, decoded_value, decoded_scan in decoded_forms:
+                    for inner in decoded_scan.threats_detected:
+                        decoded_findings.append({
+                            "form": f"decoded-{decoded_form}",
+                            "type": inner.threat_type,
+                            "offset": inner.offset_range,
+                            "snippet": decoded_value[slice(*inner.offset_range)],
+                            "inspected_text": decoded_value,
+                        })
+                    for inner in self.delimiter_guard.inspect(decoded_value):
+                        decoded_findings.append({
+                            "form": f"decoded-{decoded_form}",
+                            "type": "DELIMITER_HIJACK",
+                            "snippet": inner.match_snippet,
+                            "inspected_text": decoded_value,
+                        })
+                if (decoded_findings or
                         "SYSTEM DIRECTIVE" in decoded or "flag" in decoded.lower()):
                     append({
                         "type": "BASE64_STREAM_SMUGGLING", "severity": "HIGH",
                         "description": "Base64 decoded text matched a rule or the directive/flag keyword heuristic",
-                        "snippet": encoded, "decoded_text": decoded, "form": form,
+                        "snippet": encoded, "decoded_text": decoded,
+                        "decoded_canonical_text": decoded_canonical,
+                        "decoded_findings": decoded_findings, "form": form,
                     })
         if self.enable_frontier_defense and is_multi_turn:
             threat = self.state_tracker.record_and_evaluate(canonical)
