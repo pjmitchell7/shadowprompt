@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import socket
 import subprocess
 import tempfile
 import time
@@ -35,16 +36,21 @@ RAF_PROBE = """(() => {
 })();"""
 
 
-def wait_for_server(url, process):
+def wait_for_server(url, process, log, port):
     for _ in range(100):
         if process.poll() is not None:
             raise RuntimeError("Production preview exited before becoming ready")
-        try:
-            with urllib.request.urlopen(url, timeout=1) as response:
-                if response.status == 200:
-                    return
-        except OSError:
-            time.sleep(0.1)
+        log.seek(0)
+        startup = log.read().decode("utf-8", errors="replace")
+        log.seek(0, 2)
+        if "Local:" in startup and f":{port}/" in startup:
+            try:
+                with urllib.request.urlopen(url, timeout=1) as response:
+                    if response.status == 200 and process.poll() is None:
+                        return
+            except OSError:
+                pass
+        time.sleep(0.1)
     raise RuntimeError("Production preview did not become ready")
 
 
@@ -422,15 +428,22 @@ def main():
     node = shutil.which("node")
     if not node or not (ROOT / "dist/index.html").exists():
         raise RuntimeError("Install Node dependencies and run npm run build first")
-    port = os.environ.get("SHADOWPROMPT_TEST_PORT", "4174")
+    port = os.environ.get("SHADOWPROMPT_TEST_PORT")
+    if port is None:
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = str(probe.getsockname()[1])
     url = f"http://127.0.0.1:{port}/shadowprompt/"
     with tempfile.TemporaryFile() as log:
         process = subprocess.Popen([node, str(ROOT / "node_modules/vite/bin/vite.js"), "preview", "--host", "127.0.0.1", "--port", port, "--strictPort"], cwd=ROOT, stdout=log, stderr=log)
         try:
-            wait_for_server(url, process)
+            wait_for_server(url, process, log, port)
             run_checks(url, args.artifacts)
+            if process.poll() is not None:
+                raise RuntimeError("Production preview exited during browser checks")
         finally:
-            process.terminate()
+            if process.poll() is None:
+                process.terminate()
             process.wait(timeout=10)
 
 
