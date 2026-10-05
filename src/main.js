@@ -405,6 +405,8 @@ const announce = (message) => {
 const currentResult = () => state.custom ?? state.results[state.turn];
 const customIsStale = () => Boolean(state.customSnapshot) && (
   $("custom-payload").value !== state.customSnapshot.raw ||
+  !$("threshold").value.trim() ||
+  !$("threshold").validity.valid ||
   Number($("threshold").value) !== state.customSnapshot.threshold ||
   state.scenario.id !== state.customSnapshot.scenario.id ||
   state.turn + 1 !== state.customSnapshot.selectedTurn
@@ -412,7 +414,9 @@ const customIsStale = () => Boolean(state.customSnapshot) && (
 function refreshCustomStatus() {
   if (!state.custom) return;
   render();
-  if (customIsStale()) feedback("Input or settings changed. The previous inspection is stale; run inspection again.");
+  feedback(customIsStale()
+    ? "Input or settings changed. The previous inspection is stale; run inspection again."
+    : "Inputs match the inspected snapshot. The displayed result is current.");
 }
 
 function stopPlayback() {
@@ -818,7 +822,8 @@ on($("inspect-form"), "submit", (event) => {
   state.guideStep = null;
   renderGuide();
   const payload = $("custom-payload").value;
-  const threshold = Number($("threshold").value);
+  const thresholdText = $("threshold").value.trim();
+  const threshold = Number(thresholdText);
   if (!payload.trim()) {
     feedback("Enter a payload before running inspection.", true);
     $("custom-payload").focus();
@@ -828,7 +833,7 @@ on($("inspect-form"), "submit", (event) => {
     feedback("Payload exceeds the 16,000-character limit.", true);
     return;
   }
-  if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) {
+  if (!thresholdText || !$("threshold").validity.valid || !Number.isFinite(threshold) || threshold < 0 || threshold > 1) {
     feedback("Threshold must be between 0 and 1.", true);
     return;
   }

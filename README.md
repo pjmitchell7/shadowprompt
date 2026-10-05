@@ -14,7 +14,7 @@ The Python API is a separate local rule engine. Research scripts include determi
 | Python API | Raw and canonical inspection, bounded request-contained history and optional synthetic canary response | No authentication, model transport or persistent session service |
 | Python research scripts | Fixture benchmarks, scripted capture-the-flag targets and patch-template experiments | Deterministic demonstrations, not independent model evaluations |
 
-The browser and Python engines have separate implementations and rule coverage. Their results need not match. Both expose evidence instead of treating absence of a match as proof of safety.
+The browser and Python engines have separate implementations and rule coverage. Their results need not match. Both expose evidence instead of treating absence of a match as proof of safety. Browser inspection accepts at most 16,000 UTF-16 code units per payload and 16 prior turns totaling at most 32,768 code units; its replay supplies only the preceding turns from the selected example. The Python API uses its own 16,384-code-point prompt limit and 12-turn history contract below. These are different input and history boundaries, not interchangeable verdicts.
 
 ## Follow the guided replay
 

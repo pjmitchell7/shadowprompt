@@ -218,6 +218,15 @@ def run_checks(url, artifacts):
         expect(page.locator("#verdict")).to_have_text("NO RULE MATCHED")
         page.locator("#threshold").fill("0.72")
         page.get_by_role("button", name="Run inspection", exact=True).click()
+        page.locator("#threshold").fill("0")
+        page.get_by_role("button", name="Run inspection", exact=True).click()
+        expect(page.locator("#verdict")).to_have_text("REVIEW")
+        page.locator("#threshold").fill("")
+        expect(page.locator("#verdict")).to_have_text("STALE / RERUN INSPECTION")
+        page.locator("#threshold").fill("0")
+        expect(page.locator("#verdict")).to_have_text("REVIEW")
+        expect(page.locator("#feedback")).to_contain_text("displayed result is current")
+        page.locator("#threshold").fill("0.72")
 
         # Each retained inspection owns its exact context after guide navigation.
         page.locator("#scenario").select_option("assembly")
