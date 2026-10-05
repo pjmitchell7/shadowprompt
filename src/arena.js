@@ -240,6 +240,7 @@ export class Arena {
   }
 
   showFallback(message) {
+    if (this.container.querySelector?.('#arena-fallback')) return;
     if (this.fallback) return;
     this.fallback = document.createElement('div');
     this.fallback.className = 'arena-fallback';

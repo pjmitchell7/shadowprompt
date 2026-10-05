@@ -66,117 +66,7 @@ app.innerHTML = /* HTML */ ` <header class="app-header">
         ><button id="export" class="quiet">Export trace</button>
       </div>
     </section>
-    <section class="panel metrics" aria-label="Measured inspection telemetry">
-      <div class="metric">
-        <p class="metric-label">Local inspection</p>
-        <p class="metric-value">
-          <span id="metric-latency">0.000</span><small>ms</small>
-        </p>
-        <details class="metric-help">
-          <summary id="latency-note">Measured in this browser</summary>
-          <p>
-            Elapsed time for local text normalization and rule checks. It does
-            not include a model or network request, and it does not measure
-            detection quality.
-          </p>
-        </details>
-      </div>
-      <div class="metric">
-        <p class="metric-label">Example turn</p>
-        <p class="metric-value">
-          <span id="metric-depth">01</span><small>turns</small>
-        </p>
-        <details class="metric-help">
-          <summary>About turn count</summary>
-          <p>
-            Your place in this example. It counts messages in the selected
-            sequence, not AI reasoning depth or how dangerous a message is.
-          </p>
-        </details>
-      </div>
-      <div class="metric">
-        <p class="metric-label">Word similarity</p>
-        <p class="metric-value" id="metric-similarity">0.000</p>
-        <details class="metric-help">
-          <summary id="similarity-note">Local reference word overlap</summary>
-          <p>
-            Compares normalized words with four local reference phrases. The
-            threshold controls this signal only. It is not a meaning model or a
-            safety verdict by itself.
-          </p>
-        </details>
-      </div>
-      <div class="metric">
-        <p class="metric-label">Character variety</p>
-        <p class="metric-value">
-          <span id="metric-entropy">0.00</span><small>bits</small>
-        </p>
-        <details class="metric-help">
-          <summary>About character variety</summary>
-          <p>
-            Measures the distribution of characters in the text. Code, names
-            and ordinary multilingual messages can also have varied text; this
-            number does not reveal intent or prove an attack.
-          </p>
-        </details>
-      </div>
-    </section>
     <div class="workspace-grid">
-      <div>
-        <section class="panel arena-panel" aria-labelledby="arena-heading">
-          <div class="panel-header">
-            <h2 class="panel-title" id="arena-heading">
-              <span class="section-id">01</span>Tactical arena
-            </h2>
-            <span class="panel-meta" id="replay-state">Paused</span>
-          </div>
-          <div class="arena-frame" id="arena">
-            <div class="arena-overlay">
-              <div class="arena-caption">
-                <strong>ADVERSARIAL PATH</strong>INPUT / BOUNDARY / MODEL
-              </div>
-              <div class="arena-caption" id="arena-turn">TURN 01</div>
-            </div>
-            <p class="arena-help">
-              Drag to orbit. Scroll to zoom. Select a node to inspect its role.
-            </p>
-          </div>
-          <div class="arena-toolbar">
-            <div class="view-controls" aria-label="Camera views">
-              <button data-view="isometric" aria-pressed="true">
-                Isometric</button
-              ><button data-view="top" aria-pressed="false">Plan</button
-              ><button data-view="attacker" aria-pressed="false">Attack</button>
-            </div>
-            <button id="reset-camera" class="quiet reset-camera">
-              Reset view
-            </button>
-          </div>
-          <div class="node-controls" aria-label="Select arena role">
-            <button data-node="attacker" aria-pressed="false">
-              <i class="role-mark" aria-hidden="true"></i>Attacker</button
-            ><button data-node="guardrail" aria-pressed="true">
-              <i class="role-mark guard" aria-hidden="true"></i
-              >Guardrail</button
-            ><button data-node="target" aria-pressed="false">
-              <i class="role-mark target" aria-hidden="true"></i>Target model
-            </button>
-          </div>
-          <p class="selection-info" id="selection-info">
-            Guardrail: local heuristic and lexical inspection boundary.
-          </p>
-        </section>
-
-        <section class="panel sequence" aria-labelledby="sequence-heading">
-          <div class="panel-header">
-            <h2 class="panel-title" id="sequence-heading">
-              <span class="section-id">02</span>Turn sequence
-            </h2>
-            <span class="panel-meta" id="sequence-count"></span>
-          </div>
-          <ol class="sequence-list" id="turn-list"></ol>
-        </section>
-      </div>
       <aside
         class="panel inspection-panel"
         aria-labelledby="inspection-heading"
@@ -303,7 +193,118 @@ app.innerHTML = /* HTML */ ` <header class="app-header">
           remote model, embedding service or network defense is connected.
         </div>
       </aside>
+      <div class="visual-column">
+        <section class="panel arena-panel" aria-labelledby="arena-heading">
+          <div class="panel-header">
+            <h2 class="panel-title" id="arena-heading">
+              <span class="section-id">01</span>Tactical arena
+            </h2>
+            <span class="panel-meta" id="replay-state">Paused</span>
+          </div>
+          <div class="arena-frame" id="arena">
+            <div class="arena-overlay">
+              <div class="arena-caption">
+                <strong>ADVERSARIAL PATH</strong>INPUT / BOUNDARY / MODEL
+              </div>
+              <div class="arena-caption" id="arena-turn">TURN 01</div>
+            </div>
+            <p class="arena-help">
+              Drag to orbit. Scroll to zoom. Select a node to inspect its role.
+            </p>
+            <div class="arena-fallback" id="arena-fallback" hidden aria-label="Local inspection flow"></div>
+          </div>
+          <div class="arena-toolbar">
+            <div class="view-controls" aria-label="Camera views">
+              <button data-view="isometric" aria-pressed="true">
+                Isometric</button
+              ><button data-view="top" aria-pressed="false">Plan</button
+              ><button data-view="attacker" aria-pressed="false">Attack</button>
+            </div>
+            <button id="reset-camera" class="quiet reset-camera">
+              Reset view
+            </button>
+          </div>
+          <div class="node-controls" aria-label="Select arena role">
+            <button data-node="attacker" aria-pressed="false">
+              <i class="role-mark" aria-hidden="true"></i>Attacker</button
+            ><button data-node="guardrail" aria-pressed="true">
+              <i class="role-mark guard" aria-hidden="true"></i
+              >Guardrail</button
+            ><button data-node="target" aria-pressed="false">
+              <i class="role-mark target" aria-hidden="true"></i>Target model
+            </button>
+          </div>
+          <p class="selection-info" id="selection-info">
+            Guardrail: local heuristic and lexical inspection boundary.
+          </p>
+        </section>
+
+        <section class="panel sequence" aria-labelledby="sequence-heading">
+          <div class="panel-header">
+            <h2 class="panel-title" id="sequence-heading">
+              <span class="section-id">02</span>Turn sequence
+            </h2>
+            <span class="panel-meta" id="sequence-count"></span>
+          </div>
+          <ol class="sequence-list" id="turn-list"></ol>
+        </section>
+      </div>
     </div>
+    <section class="panel metrics" aria-label="Measured inspection telemetry">
+      <div class="metric">
+        <p class="metric-label">Local inspection</p>
+        <p class="metric-value">
+          <span id="metric-latency">0.000</span><small>ms</small>
+        </p>
+        <details class="metric-help">
+          <summary id="latency-note">Measured in this browser</summary>
+          <p>
+            Elapsed time for local text normalization and rule checks. It does
+            not include a model or network request, and it does not measure
+            detection quality.
+          </p>
+        </details>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Example turn</p>
+        <p class="metric-value">
+          <span id="metric-depth">01</span><small>turns</small>
+        </p>
+        <details class="metric-help">
+          <summary>About turn count</summary>
+          <p>
+            Your place in this example. It counts messages in the selected
+            sequence, not AI reasoning depth or how dangerous a message is.
+          </p>
+        </details>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Word similarity</p>
+        <p class="metric-value" id="metric-similarity">0.000</p>
+        <details class="metric-help">
+          <summary id="similarity-note">Local reference word overlap</summary>
+          <p>
+            Compares normalized words with four local reference phrases. The
+            threshold controls this signal only. It is not a meaning model or a
+            safety verdict by itself.
+          </p>
+        </details>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Character variety</p>
+        <p class="metric-value">
+          <span id="metric-entropy">0.00</span><small>bits</small>
+        </p>
+        <details class="metric-help">
+          <summary>About character variety</summary>
+          <p>
+            Measures the distribution of characters in the text. Code, names
+            and ordinary multilingual messages can also have varied text; this
+            number does not reveal intent or prove an attack.
+          </p>
+        </details>
+      </div>
+    </section>
     <footer class="workspace-footer">
       <p>
         SHADOWPROMPT / INSPECTION CONSOLE<br />Local timing includes
@@ -370,6 +371,7 @@ const state = {
   timer: null,
   tab: "raw",
   custom: null,
+  customSnapshot: null,
   customTrace: [],
   threshold: 0.72,
   guideStep: null,
@@ -401,6 +403,17 @@ const announce = (message) => {
   $("announcement").textContent = message;
 };
 const currentResult = () => state.custom ?? state.results[state.turn];
+const customIsStale = () => Boolean(state.customSnapshot) && (
+  $("custom-payload").value !== state.customSnapshot.raw ||
+  Number($("threshold").value) !== state.customSnapshot.threshold ||
+  state.scenario.id !== state.customSnapshot.scenario.id ||
+  state.turn + 1 !== state.customSnapshot.selectedTurn
+);
+function refreshCustomStatus() {
+  if (!state.custom) return;
+  render();
+  if (customIsStale()) feedback("Input or settings changed. The previous inspection is stale; run inspection again.");
+}
 
 function stopPlayback() {
   clearTimeout(state.timer);
@@ -429,6 +442,10 @@ function renderEvidence() {
     button.setAttribute("aria-selected", String(selected));
     button.tabIndex = selected ? 0 : -1;
   });
+  if (state.custom) {
+    const snapshot = state.customSnapshot;
+    body.append(text("p", `Inspected snapshot: ${snapshot.scenario.name}, turn ${snapshot.selectedTurn}, ${snapshot.context.length} preceding turns, threshold ${snapshot.threshold.toFixed(2)}.${customIsStale() ? " Inputs changed; rerun inspection for a current verdict." : ""}`, "evidence-note"));
+  }
   if (state.tab === "raw" || state.tab === "normalized") {
     body.append(
       text(
@@ -545,8 +562,9 @@ function render() {
   $("metric-similarity").textContent = result.similarity.toFixed(3);
   $("similarity-note").textContent = `Overlap threshold ${result.threshold.toFixed(2)}`;
   $("metric-entropy").textContent = result.entropy.toFixed(2);
-  $("verdict").textContent = verdictLabels[result.verdict];
-  $("verdict").dataset.verdict = result.verdict;
+  const stale = state.custom && customIsStale();
+  $("verdict").textContent = stale ? "STALE / RERUN INSPECTION" : verdictLabels[result.verdict];
+  $("verdict").dataset.verdict = stale ? "stale" : result.verdict;
   $("turn-ref").textContent = state.custom
     ? "CUSTOM INPUT"
     : `TURN ${String(state.turn + 1).padStart(2, "0")}`;
@@ -554,7 +572,7 @@ function render() {
     ? "Custom payload inspection"
     : turn.label;
   $("turn-description").textContent = state.custom
-    ? `Inspected with ${state.turn} preceding scenario turn${state.turn === 1 ? "" : "s"} as context. This result does not replace the recorded scenario.`
+    ? `Inspected ${state.customSnapshot.scenario.name}, turn ${state.customSnapshot.selectedTurn}, with ${state.customSnapshot.context.length} preceding turns as context. This result does not replace the recorded scenario.${stale ? " Input or threshold changed; rerun inspection." : ""}`
     : state.scenario.description;
   $("expected").classList.toggle(
     "mismatch",
@@ -563,7 +581,7 @@ function render() {
       turn.expectedVerdict !== result.verdict,
   );
   $("expected").textContent = state.custom
-    ? `Your text / local result: ${verdictLabels[result.verdict].toLowerCase()}`
+    ? stale ? `Previous inspected snapshot: ${verdictLabels[result.verdict].toLowerCase()}. Current input has no verdict until rerun.` : `Your text / local result: ${verdictLabels[result.verdict].toLowerCase()}`
     : turn.expectedVerdict
       ? `Example expectation: ${verdictLabels[turn.expectedVerdict].toLowerCase()} / Local result: ${verdictLabels[result.verdict].toLowerCase()}`
       : `Local result: ${verdictLabels[result.verdict].toLowerCase()} / No example expectation`;
@@ -611,8 +629,9 @@ function render() {
   arena?.setEvent({
     turn: state.turn + 1,
     total: count,
-    verdict: result.verdict,
+    verdict: stale ? "review" : result.verdict,
   });
+  renderFallbackFlow();
 }
 
 function selectTurn(index, message = true) {
@@ -639,6 +658,7 @@ function showGuideStep(index, { scroll = false } = {}) {
   state.custom = null;
   state.guideStep = index;
   render();
+  if (state.customTrace.length) feedback("Guide changed the selected scenario. Earlier custom inspections remain attributed in Export trace.");
   if (scroll) $("guided-panel").scrollIntoView({ block: "center", behavior: "instant" });
   $("guided-next").focus({ preventScroll: true });
 }
@@ -674,10 +694,10 @@ on($("scenario"), "change", () => {
   );
   state.turn = 0;
   state.custom = null;
-  state.customTrace = [];
+  state.customSnapshot = null;
   inspectScenario();
   render();
-  feedback("Scenario loaded. Replay is paused at the first turn.");
+  feedback("Scenario loaded. Earlier custom inspections remain attributed in Export trace.");
 });
 on($("play"), "click", () => {
   state.guideStep = null;
@@ -787,8 +807,11 @@ on($("guided-close"), "click", () => {
 });
 on($("load-payload"), "click", () => {
   $("custom-payload").value = state.scenario.turns[state.turn].payload;
+  refreshCustomStatus();
   $("custom-payload").focus();
-  feedback("Selected payload loaded. Edit it, then run inspection.");
+  feedback(state.custom && customIsStale()
+    ? "Selected payload loaded. Previous inspection is stale; run inspection again."
+    : "Selected payload loaded. Edit it, then run inspection.");
 });
 on($("inspect-form"), "submit", (event) => {
   event.preventDefault();
@@ -811,18 +834,27 @@ on($("inspect-form"), "submit", (event) => {
   }
   stopPlayback();
   try {
-    const result = inspectPayload(payload, {
-      history: state.scenario.turns
-        .slice(0, state.turn)
-        .map((turn) => turn.payload),
+    const context = state.scenario.turns.slice(0, state.turn).map((turn, index) =>
+      Object.freeze({ turn: index + 1, raw: turn.payload }),
+    );
+    const snapshot = Object.freeze({
+      scenario: Object.freeze({ id: state.scenario.id, name: state.scenario.name, category: state.scenario.category }),
+      selectedTurn: state.turn + 1,
+      context: Object.freeze(context),
+      raw: payload,
       threshold,
     });
-    state.custom = result;
-    state.customTrace.push({
-      atTurn: state.turn + 1,
-      inspectedAt: new Date().toISOString(),
-      result,
+    const result = inspectPayload(snapshot.raw, {
+      history: snapshot.context.map((turn) => turn.raw),
+      threshold: snapshot.threshold,
     });
+    state.custom = result;
+    state.customSnapshot = snapshot;
+    state.customTrace.push(Object.freeze({
+      inspectedAt: new Date().toISOString(),
+      snapshot,
+      result,
+    }));
     state.customTrace = state.customTrace.slice(-50);
     state.tab = "raw";
     render();
@@ -834,10 +866,13 @@ on($("inspect-form"), "submit", (event) => {
     );
   }
 });
+on($("custom-payload"), "input", refreshCustomStatus);
+on($("threshold"), "input", refreshCustomStatus);
+on($("threshold"), "change", refreshCustomStatus);
 on($("export"), "click", () => {
   try {
     const trace = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       product: "ShadowPrompt",
       mode: "browser-local-replay",
       exportedAt: new Date().toISOString(),
@@ -853,7 +888,8 @@ on($("export"), "click", () => {
         entropy: "Shannon bits per Unicode code point",
         similarity: "local lexical cosine; no embedding model",
         modelConnection: false,
-        customHistory: "preceding scenario turns",
+        customHistory: "each custom inspection stores its own scenario, selected turn and exact preceding turn text",
+        customRetention: "up to 50 attributed inspections across manual and guided scenario navigation",
         retainedCustomInspectionLimit: 50,
       },
       turns: state.scenario.turns.map((turn, index) => ({
@@ -871,6 +907,10 @@ on($("export"), "click", () => {
         { quarantine: 0, review: 0, "no-match": 0 },
       ),
       customInspections: state.customTrace,
+      activeCustomInspection: state.custom ? {
+        snapshot: state.customSnapshot,
+        stale: customIsStale(),
+      } : null,
     };
     if (exportUrl) URL.revokeObjectURL(exportUrl);
     clearTimeout(exportTimer);
@@ -899,11 +939,36 @@ on($("export"), "click", () => {
   }
 });
 
+function renderFallbackFlow() {
+  const fallback = $("arena-fallback");
+  if (fallback.hidden) return;
+  const result = currentResult();
+  const stale = state.custom && customIsStale();
+  const input = state.custom ? state.customSnapshot.raw : state.scenario.turns[state.turn].payload;
+  const checks = result.rules.length
+    ? result.rules.map((rule) => `${rule.id}: ${rule.name}`).join("; ")
+    : "No local rule matched";
+  const stage = (label, value, code = false) => {
+    const item = text("div", "", "fallback-stage");
+    item.append(text("span", label, "fallback-label"), text(code ? "pre" : "p", safeDisplay(value), "fallback-value"));
+    return item;
+  };
+  fallback.replaceChildren(
+    stage(state.custom ? "Inspected custom input" : `Scenario turn ${state.turn + 1}`, input, true),
+    stage("Local checks", stale ? `Previous snapshot: ${checks}. Rerun for current input.` : checks),
+    stage("Inspection result", stale ? "STALE / RERUN INSPECTION" : verdictLabels[result.verdict]),
+    text("p", "Browser-local heuristics only. No model request is made.", "fallback-scope"),
+  );
+}
+
 inspectScenario();
 render();
 function setRendererStatus(status) {
   $("renderer-status").textContent = status;
   const unavailable = /unavailable|context lost/i.test(status);
+  $("arena").closest(".arena-panel").classList.toggle("is-fallback", unavailable);
+  $("arena-fallback").hidden = !unavailable;
+  renderFallbackFlow();
   document.querySelectorAll("[data-view], #reset-camera").forEach((button) => {
     button.disabled = unavailable;
     button.title = unavailable
@@ -925,13 +990,6 @@ try {
     verdict: currentResult().verdict,
   });
 } catch {
-  $("arena").append(
-    text(
-      "p",
-      "The 3D renderer is unavailable. Use the turn sequence and role controls to inspect the full scenario.",
-      "arena-fallback",
-    ),
-  );
   setRendererStatus("Text inspection available / WebGL unavailable");
 }
 on(document, "visibilitychange", () => {

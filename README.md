@@ -20,6 +20,8 @@ The browser and Python engines have separate implementations and rule coverage. 
 
 Choose **Start guided replay** on the first screen. The guide selects a prompt that asks the AI to ignore earlier instructions. Step through the raw text, its normalized form and the rule match, then compare an ordinary request. The selected scenario, turn, arena and inspector update together. Use Back or close the guide to explore manually.
 
+The JSON export uses `schemaVersion: 2`. Its top-level `scenario`, `turns` and `decisions` describe the scenario selected at export time. Each `customInspections` entry separately contains the immutable `snapshot` used for that inspection: scenario identity, selected turn, exact preceding turn text, raw input and threshold, plus its result. Up to 50 attributed custom inspections remain across manual and guided navigation. `activeCustomInspection.stale` marks whether the open editor differs from the last inspected snapshot. Version 1 consumers that expect `atTurn` directly on each custom entry must migrate to `snapshot.selectedTurn`; readers should branch on `schemaVersion`. The export remains a local browser download and contains the inspected text.
+
 The measurements beside the replay are local diagnostics, not independent risk scores. The turn count tracks the example position, word similarity compares the prompt with four local reference phrases, and character variety describes the text distribution. These values do not establish malicious intent or model behavior. Local inspection time excludes a model request because none is connected.
 
 ## Local setup
