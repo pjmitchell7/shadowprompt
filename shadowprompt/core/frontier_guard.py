@@ -127,10 +127,9 @@ class MarkdownExfilGuard:
     MD_IMAGE_REGEX = re.compile(r"!\[(.*?)\]\((https?://[^\s)]+)\)")
 
     def inspect(self, text: str) -> Optional[FrontierThreat]:
-        match = self.MD_IMAGE_REGEX.search(text)
-        if match:
+        for match in self.MD_IMAGE_REGEX.finditer(text):
             url = match.group(2)
-            # Flag if URL contains query strings or typical tracking / exfiltration parameters
+            # Inspect each image URL; an ordinary image may precede a beacon.
             if any(p in url.lower() for p in ["exfil=", "beacon", "token=", "key=", "leak", "sink"]):
                 return FrontierThreat(
                     vector_name="Markdown Covert Exfiltration Beacon",

