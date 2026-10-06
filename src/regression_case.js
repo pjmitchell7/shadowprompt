@@ -30,8 +30,14 @@ export function validateCase(value) {
     if (!result[key].trim()) throw new Error(`${key} is required.`);
   }
   if (result.cleanContext === result.poisonedContext) throw new Error('Clean and poisoned context must differ.');
-  if (JSON.stringify(result).length > MAX_CASE_FILE_BYTES) throw new Error('Case exceeds the file size limit.');
+  if (new TextEncoder().encode(JSON.stringify(result, null, 2)).length > MAX_CASE_FILE_BYTES) {
+    throw new Error('Case exceeds the exported file size limit.');
+  }
   return result;
+}
+
+export function serializeCase(value) {
+  return JSON.stringify(validateCase(value), null, 2);
 }
 
 export function parseCaseJson(text) {

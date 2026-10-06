@@ -334,6 +334,87 @@ def run_checks(url, artifacts):
         })
         expect(page.locator('[data-case="title"]')).to_have_value(saved_case["title"])
         expect(page.locator('[data-case="poisonedContext"]')).to_have_value(saved_case["poisonedContext"])
+        saved_case["cleanContext"] = saved_case["cleanContext"].replace("\n", "\r\n")
+        saved_case["poisonedContext"] += "\rLone carriage return"
+        saved_case["sourceNotes"] += "\r\nUnicode: 漢"
+        saved_case["model"] = "revision\r\nfrom imported metadata"
+        saved_case["cleanResponse"] = "x\r\ny"
+        saved_case["requiredText"] = "x\n"
+        page.locator("#case-import").set_input_files({
+            "name": "crlf.json", "mimeType": "application/json",
+            "buffer": json.dumps(saved_case).encode("utf-8"),
+        })
+        expect(page.locator("#case-feedback")).to_contain_text("Imported line endings remain in exports")
+        page.get_by_role("button", name="Review case").click()
+        expect(page.locator("#case-comparison")).to_contain_text("Literal contract: fail")
+        page.locator('[data-case="title"]').fill("Edited title only")
+        with page.expect_download() as crlf_download:
+            page.locator("#case-export").click()
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "crlf-roundtrip.json"
+            crlf_download.value.save_as(destination)
+            crlf_roundtrip = json.loads(destination.read_text(encoding="utf-8"))
+        assert crlf_roundtrip["cleanContext"] == saved_case["cleanContext"]
+        assert crlf_roundtrip["poisonedContext"] == saved_case["poisonedContext"]
+        assert crlf_roundtrip["cleanResponse"] == saved_case["cleanResponse"]
+        assert crlf_roundtrip["sourceNotes"] == saved_case["sourceNotes"]
+        assert crlf_roundtrip["model"] == saved_case["model"]
+        assert crlf_roundtrip["requiredText"] == saved_case["requiredText"]
+        page.locator('[data-case="cleanContext"]').fill("Edited\ncontext")
+        expect(page.locator("#case-feedback")).to_contain_text("browser controls may normalize")
+        page.locator('[data-case="requiredText"]').fill("30 days")
+        page.locator('[data-case="cleanResponse"]').fill("30 days")
+        page.get_by_role("button", name="Review case").click()
+        expect(page.locator("#case-comparison")).to_contain_text("Literal contract: pass")
+        page.evaluate("""() => {
+          Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: { writeText(value) {
+              window.__copiedCaseText = value;
+              return new Promise(resolve => { window.__releaseCaseCopy = resolve; });
+            } },
+          });
+        }""")
+        page.locator("#case-copy").click()
+        page.locator('[data-case="cleanResponse"]').fill("I cannot answer.")
+        page.evaluate("window.__releaseCaseCopy()")
+        expect(page.locator("#case-comparison")).to_be_empty()
+        expect(page.locator("#case-feedback")).to_contain_text("Earlier case snapshot copied")
+        assert page.evaluate("window.__copiedCaseText.includes('Edited title only')")
+        page.get_by_role("button", name="Review case").click()
+        expect(page.locator("#case-comparison")).to_contain_text("Literal contract: fail")
+
+        # An older asynchronous import cannot replace a newer choice or later edits.
+        page.evaluate("""() => {
+          const original = File.prototype.text;
+          File.prototype.text = function() {
+            if (this.name === 'slow.json') return new Promise(resolve => {
+              window.__releaseSlowCase = () => original.call(this).then(resolve);
+            });
+            return original.call(this);
+          };
+        }""")
+        slow_case = {**saved_case, "title": "Older file"}
+        fast_case = {**saved_case, "title": "Newer file"}
+        page.locator("#case-import").set_input_files({
+            "name": "slow.json", "mimeType": "application/json",
+            "buffer": json.dumps(slow_case).encode("utf-8"),
+        })
+        page.locator("#case-import").set_input_files({
+            "name": "fast.json", "mimeType": "application/json",
+            "buffer": json.dumps(fast_case).encode("utf-8"),
+        })
+        expect(page.locator('[data-case="title"]')).to_have_value("Newer file")
+        page.evaluate("window.__releaseSlowCase()")
+        expect(page.locator('[data-case="title"]')).to_have_value("Newer file")
+        page.locator("#case-import").set_input_files({
+            "name": "slow.json", "mimeType": "application/json",
+            "buffer": json.dumps(slow_case).encode("utf-8"),
+        })
+        page.locator('[data-case="title"]').fill("Edited while import pending")
+        page.evaluate("window.__releaseSlowCase()")
+        expect(page.locator('[data-case="title"]')).to_have_value("Edited while import pending")
+        expect(page.locator("#case-feedback")).to_contain_text("Import discarded")
         page.locator('[data-case="question"]').fill('<img src=x onerror="window.__caseUnsafe=true">')
         page.get_by_role("button", name="Review case").click()
         assert page.evaluate("window.__caseUnsafe === undefined")

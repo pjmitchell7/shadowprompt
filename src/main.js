@@ -2,7 +2,7 @@ import "../css/style.css";
 import { Arena } from "./arena.js";
 import { inspectPayload } from "./inspection.js";
 import { SCENARIOS } from "./scenarios.js";
-import { CASE_KIND, CASE_VERSION, MAX_CASE_FILE_BYTES, validateCase, parseCaseJson, compareCase, issueSummary } from "./regression_case.js";
+import { CASE_KIND, CASE_VERSION, MAX_CASE_FILE_BYTES, validateCase, parseCaseJson, serializeCase, compareCase, issueSummary } from "./regression_case.js";
 
 const app = document.querySelector("#app");
 // This template is static. Every payload, rule and scenario string uses textContent.
@@ -1018,15 +1018,30 @@ const caseFields = Object.keys(validateCase({
 })).filter(key => !['kind', 'schemaVersion', 'cleanResponse', 'poisonedResponse'].includes(key));
 const caseField = key => document.querySelector(`[data-case="${key}"]`);
 const caseFeedback = message => { $('case-feedback').textContent = message; };
+let caseSource = null;
+let caseDirtyFields = new Set();
+let caseRevision = 0;
+let caseImportRequest = 0;
+const editorMayNormalize = (key, value) => typeof value === 'string' &&
+  (value.includes('\r') || (['title', 'model', 'revision'].includes(key) && value.includes('\n')));
 function collectCase() {
   const value = { kind: CASE_KIND, schemaVersion: CASE_VERSION };
-  for (const key of caseFields) value[key] = caseField(key).value;
-  value.cleanResponse = $('case-clean-supplied').checked ? caseField('cleanResponse').value : null;
-  value.poisonedResponse = $('case-poisoned-supplied').checked ? caseField('poisonedResponse').value : null;
+  for (const key of caseFields) {
+    value[key] = caseSource && !caseDirtyFields.has(key) ? caseSource[key] : caseField(key).value;
+  }
+  for (const branch of ['clean', 'poisoned']) {
+    const key = `${branch}Response`;
+    value[key] = $('case-' + branch + '-supplied').checked
+      ? caseSource && !caseDirtyFields.has(key) ? caseSource[key] : caseField(key).value
+      : null;
+  }
   return validateCase(value);
 }
 function applyCase(value) {
   const item = validateCase(value);
+  caseSource = item;
+  caseDirtyFields = new Set();
+  caseRevision += 1;
   for (const key of caseFields) caseField(key).value = item[key];
   for (const branch of ['clean', 'poisoned']) {
     const response = item[`${branch}Response`];
@@ -1057,9 +1072,15 @@ on($('case-form'), 'submit', event => {
   try { renderCase(collectCase()); caseFeedback('Case reviewed locally. Export JSON to keep it.'); }
   catch (error) { caseFeedback(error.message); }
 });
-const invalidateCaseReview = () => {
+const invalidateCaseReview = event => {
+  const key = event.target.dataset.case || (event.target.id === 'case-clean-supplied' ? 'cleanResponse'
+    : event.target.id === 'case-poisoned-supplied' ? 'poisonedResponse' : null);
+  if (key) caseDirtyFields.add(key);
+  caseRevision += 1;
   $('case-comparison').replaceChildren();
-  caseFeedback('Case changed. Review it again for current check results.');
+  caseFeedback(caseSource && key && editorMayNormalize(key, caseSource[key])
+    ? 'Case changed. The imported field contained line endings that browser controls may normalize or strip when edited. Review the current text.'
+    : 'Case changed. Review it again for current check results.');
 };
 on($('case-form'), 'input', invalidateCaseReview);
 on($('case-form'), 'change', invalidateCaseReview);
@@ -1083,7 +1104,7 @@ on($('case-export'), 'click', () => {
     const item = collectCase();
     if (caseExportUrl) URL.revokeObjectURL(caseExportUrl);
     clearTimeout(caseExportTimer);
-    caseExportUrl = URL.createObjectURL(new Blob([JSON.stringify(item, null, 2)], { type: 'application/json' }));
+    caseExportUrl = URL.createObjectURL(new Blob([serializeCase(item)], { type: 'application/json' }));
     const link = document.createElement('a');
     link.href = caseExportUrl;
     link.download = 'shadowprompt-regression-case.json';
@@ -1098,20 +1119,39 @@ on($('case-export'), 'click', () => {
 on($('case-copy'), 'click', async () => {
   try {
     const item = collectCase();
+    const revision = caseRevision;
     await navigator.clipboard.writeText(issueSummary(item));
-    renderCase(item);
-    caseFeedback('Issue summary copied. It includes the exact case text.');
+    if (revision === caseRevision) {
+      renderCase(item);
+      caseFeedback('Issue summary copied. It includes the exact case text.');
+    } else {
+      caseFeedback('Earlier case snapshot copied. The form changed during copy; review it again.');
+    }
   } catch (error) { caseFeedback(`Could not copy issue summary: ${error.message}`); }
 });
 on($('case-import'), 'change', async event => {
   const file = event.target.files?.[0];
   if (!file) return;
+  const request = ++caseImportRequest;
+  const revision = caseRevision;
   try {
     if (file.size > MAX_CASE_FILE_BYTES) throw new Error('Case file exceeds 100,000 bytes.');
     const item = parseCaseJson(await file.text());
+    if (request !== caseImportRequest) return;
+    if (revision !== caseRevision) {
+      caseFeedback('Import discarded because the form changed while the file was being read.');
+      return;
+    }
     applyCase(item);
-    caseFeedback('Case imported and reviewed locally. No source URL was fetched.');
-  } catch (error) { caseFeedback(`Import failed; current form kept. ${error.message}`); }
+    const hasCrLf = [...caseFields, 'cleanResponse', 'poisonedResponse']
+      .some(key => editorMayNormalize(key, item[key]));
+    caseFeedback('Case imported and reviewed locally. No source URL was fetched.' +
+      (hasCrLf ? ' Imported line endings remain in exports until their field is edited; browser controls may display LF or remove them.' : ''));
+  } catch (error) {
+    if (request === caseImportRequest && revision === caseRevision) {
+      caseFeedback(`Import failed; current form kept. ${error.message}`);
+    }
+  }
   finally { event.target.value = ''; }
 });
 function setRendererStatus(status) {
