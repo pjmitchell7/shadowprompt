@@ -305,6 +305,12 @@ def run_checks(url, artifacts):
         expect(page.locator("#case-form")).to_be_visible()
         page.locator("#case-fixture").click()
         expect(page.locator("#case-comparison")).to_contain_text("not-evaluated")
+        page.locator("#case-poisoned-supplied").check()
+        page.get_by_role("button", name="Review case").click()
+        expect(page.locator("#case-comparison")).to_contain_text("Observed response is empty")
+        page.locator("#case-poisoned-supplied").uncheck()
+        page.get_by_role("button", name="Review case").click()
+        expect(page.locator("#case-comparison")).to_contain_text("not-evaluated")
         page.locator('[data-case="cleanResponse"]').fill("30 days")
         page.locator("#case-clean-supplied").check()
         page.locator('[data-case="poisonedResponse"]').fill("I cannot answer.")
@@ -345,6 +351,8 @@ def run_checks(url, artifacts):
             "buffer": json.dumps(saved_case).encode("utf-8"),
         })
         expect(page.locator("#case-feedback")).to_contain_text("Imported line endings remain in exports")
+        page.locator("#case-clean-supplied").uncheck()
+        page.locator("#case-clean-supplied").check()
         page.get_by_role("button", name="Review case").click()
         expect(page.locator("#case-comparison")).to_contain_text("Literal contract: fail")
         page.locator('[data-case="title"]').fill("Edited title only")
@@ -421,6 +429,19 @@ def run_checks(url, artifacts):
         expect(page.locator("#case-comparison")).to_contain_text('<img src=x onerror="window.__caseUnsafe=true">')
         page.set_viewport_size({"width": 320, "height": 900})
         assert_no_overflow(page)
+        page.locator('[data-case="title"]').fill("T" * 160)
+        page.locator('[data-case="question"]').fill("Q" * 4000)
+        page.get_by_role("button", name="Review case").click()
+        assert_no_overflow(page)
+        for selector in ("#case-comparison > h3", "#case-comparison > p"):
+            assert page.locator(selector).evaluate("element => element.scrollWidth <= element.clientWidth"), f"Case text is clipped: {selector}"
+            assert page.locator(selector).evaluate("""element => {
+              const range = document.createRange();
+              range.selectNodeContents(element);
+              const panel = document.querySelector('#case-panel').getBoundingClientRect();
+              const lines = [...range.getClientRects()];
+              return lines.length > 1 && lines.every(line => line.left >= panel.left && line.right <= panel.right);
+            }"""), f"Case text does not wrap inside panel: {selector}"
         if artifacts:
             page.screenshot(path=str(artifacts / "case-320.png"), full_page=True)
         page.set_viewport_size({"width": 1440, "height": 900})

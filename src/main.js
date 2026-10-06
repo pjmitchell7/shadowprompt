@@ -1032,7 +1032,8 @@ function collectCase() {
   for (const branch of ['clean', 'poisoned']) {
     const key = `${branch}Response`;
     value[key] = $('case-' + branch + '-supplied').checked
-      ? caseSource && !caseDirtyFields.has(key) ? caseSource[key] : caseField(key).value
+      ? caseSource && typeof caseSource[key] === 'string' && !caseDirtyFields.has(key)
+        ? caseSource[key] : caseField(key).value
       : null;
   }
   return validateCase(value);
@@ -1073,8 +1074,7 @@ on($('case-form'), 'submit', event => {
   catch (error) { caseFeedback(error.message); }
 });
 const invalidateCaseReview = event => {
-  const key = event.target.dataset.case || (event.target.id === 'case-clean-supplied' ? 'cleanResponse'
-    : event.target.id === 'case-poisoned-supplied' ? 'poisonedResponse' : null);
+  const key = event.target.dataset.case || null;
   if (key) caseDirtyFields.add(key);
   caseRevision += 1;
   $('case-comparison').replaceChildren();
