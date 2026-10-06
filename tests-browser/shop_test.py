@@ -33,8 +33,10 @@ def run_checks(url, artifacts):
         assert response.status == 200
         expect(page.get_by_role('heading', name='A little light, for your desk.')).to_be_visible()
         expect(page.locator('#product-list > li')).to_have_count(4)
-        expect(page.locator('#pip-result')).to_contain_text('Recording not available')
+        expect(page.locator('#pip-result')).to_contain_text('Recording ready to replay' if has_recording else 'Recording not available')
         expect(page.locator('#try-live')).to_be_disabled()
+        expect(page.locator('#live-reason')).to_contain_text('Recorded replay is available here' if has_recording else 'No reviewed recording is available here')
+        expect(page.locator('#live-reason a')).to_have_attribute('href', 'https://shadowprompt-shelfday.pjmitchell.workers.dev/')
         for identifier in ['recorded-clean', 'recorded-off', 'recorded-on']:
             if has_recording:
                 expect(page.locator('#' + identifier)).to_be_enabled()
@@ -63,6 +65,7 @@ def run_checks(url, artifacts):
         page.locator('#shop-ask').click()
         expect(page.locator('#catalog-match')).to_contain_text('Catalog match: Clip Light ($39)')
         expect(page.locator('[data-sku="SD-L01"]')).to_be_focused()
+        page.locator('#comparison-panel > summary').click()
         # Visitor-paced guide, anchored controls, backward navigation and Escape.
         page.locator('#shop-start').click(); expect(page.locator('#shop-guide-next')).to_be_focused()
         page.locator('#shop-guide-next').click(); expect(page.locator('#shop-evidence')).to_be_visible()
@@ -97,6 +100,7 @@ def run_checks(url, artifacts):
             page.evaluate('document.activeElement.blur()')
             page.screenshot(path=str(artifacts / 'shop-evidence-1440.png'), full_page=True)
         # Shared controls disclose false holds and missed paraphrases honestly.
+        page.locator('#assistant-tools > summary').click()
         limits = page.get_by_text('Where this can fail', exact=True); limits.click()
         page.locator('#control-source').select_option('3')
         expect(page.locator('#control-result')).to_contain_text('Actual scanner: quarantine')
@@ -152,9 +156,10 @@ def run_checks(url, artifacts):
                     page.screenshot(path=str(artifacts / f'shop-viewport-{width}.png'))
         page.set_viewport_size({'width': 320, 'height': 900})
         page.evaluate("document.querySelector('#shop-view').style.fontSize='32px'")
-        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Text enlargement overflow'
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Text enlargement overflow: '+str(page.evaluate("[...document.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).map(e=>e.tagName+'#'+e.id+'.'+e.className)"))
         if artifacts:
             page.screenshot(path=str(artifacts / 'shop-text-enlargement-320.png'))
+        page.locator('#assistant-tools').evaluate('(node) => node.open = true')
         page.emulate_media(reduced_motion='reduce')
         page.locator('#shop-replay').click(); expect(page.locator('#shop-guide')).to_be_visible()
         page.keyboard.press('Escape'); page.wait_for_function('window.__frameProbe.pending.size === 0')

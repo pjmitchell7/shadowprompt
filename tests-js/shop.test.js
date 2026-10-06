@@ -4,7 +4,7 @@ import { makeOriginal, snapshotContext, buildContext, digest, APPLICATION_VERSIO
 import { CATALOG, POLICY_CONTROLS, FIXTURE_VERSION } from '../src/shop_fixtures.js';
 import { evaluateRecommendation, validateTrial, TRIAL_KIND, parseTrial } from '../src/shop_trial.js';
 import { RECORDINGS } from '../src/recordings.js';
-import { createRunState } from '../src/shop_state.js';
+import { createRunState, recordingAvailability, staticLiveNotice, HOSTED_SHOP_URL } from '../src/shop_state.js';
 
 async function testTrial() {
   const originals = await Promise.all(['clean', 'poisoned'].map(async id => ({ id, input: makeOriginal(id), digest: await digest(makeOriginal(id)) })));
@@ -75,4 +75,16 @@ test('recorded state reports missing and invalid artifacts, discards late comple
   const first = state.load('clean', { manifest: [{ path: 'recordings/test.json', reviewedAt: 'now', digest: 'a'.repeat(64) }], fetcher: () => slow });
   await state.load('poisoned-on', { manifest: [] }); complete(new Response('{}')); await first;
   assert.equal(state.state.status, 'unavailable'); assert.equal(state.state.condition, 'poisoned-on'); assert.equal(state.state.trial, null);
+});
+
+test('recording availability and static live copy distinguish unselected evidence from missing captures', () => {
+  assert.equal(recordingAvailability(true).title, 'Recording ready to replay');
+  assert.match(recordingAvailability(true).detail, /reviewed genuine model recording is available/);
+  assert.doesNotMatch(recordingAvailability(true).detail, /No model answer has been recorded/);
+  assert.equal(recordingAvailability(false).title, 'Recording not available');
+  assert.match(recordingAvailability(false).detail, /No model answer has been recorded/);
+  assert.match(staticLiveNotice(true), /Recorded replay is available here/);
+  assert.match(staticLiveNotice(false), /No reviewed recording is available here/);
+  assert.doesNotMatch(staticLiveNotice(true), /activation.*pending/);
+  assert.equal(HOSTED_SHOP_URL, 'https://shadowprompt-shelfday.pjmitchell.workers.dev/');
 });

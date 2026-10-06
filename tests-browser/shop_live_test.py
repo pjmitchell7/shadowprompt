@@ -35,6 +35,7 @@ async def checks(url, fixtures, artifacts):
         await page.route('**/api/shop/**', api)
         fixture_url = url + 'tests-browser/fixtures/live_harness.html'
         await page.goto(fixture_url, wait_until='networkidle')
+        await page.locator('#comparison-panel > summary').click()
         await page.locator('#model-controls > summary').click()
         await expect(page.locator('#try-live')).to_be_enabled()
         await expect(page.get_by_role('link', name='Llama 3.1 license')).to_have_attribute('href', 'https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE')
@@ -63,7 +64,7 @@ async def checks(url, fixtures, artifacts):
         await page.screenshot(path=str(artifacts/'mock-live-mobile.png'))
         # Quota shows actual returns only, stops On, and offers an honest partial export.
         scenario['group']='quota'; posts.clear()
-        await page.goto(fixture_url, wait_until='networkidle'); await page.locator('#model-controls > summary').click(); await page.locator('#try-live').click(); await page.locator('#live-run').click()
+        await page.goto(fixture_url, wait_until='networkidle'); await page.locator('#comparison-panel > summary').click(); await page.locator('#model-controls > summary').click(); await page.locator('#try-live').click(); await page.locator('#live-run').click()
         await expect(page.locator('#pip-result')).to_contain_text('Free allowance exhausted'); assert len(posts)==2
         await expect(page.locator('#live-run')).to_be_disabled()
         async with page.expect_download() as event:
@@ -73,12 +74,12 @@ async def checks(url, fixtures, artifacts):
         await page.locator('#pip-result').scroll_into_view_if_needed(); await page.screenshot(path=str(artifacts/'mock-quota-mobile.png'))
         # Invalid evidence never gets a model-output caption or complete trial.
         scenario.update(group='complete',tamper=True); posts.clear()
-        await page.goto(fixture_url, wait_until='networkidle'); await page.locator('#model-controls > summary').click(); await page.locator('#try-live').click(); await page.locator('#live-run').click()
+        await page.goto(fixture_url, wait_until='networkidle'); await page.locator('#comparison-panel > summary').click(); await page.locator('#model-controls > summary').click(); await page.locator('#try-live').click(); await page.locator('#live-run').click()
         await expect(page.locator('#pip-result')).to_contain_text('Delivered context'); assert len(posts)==1
         await expect(page.locator('#shop-export-trial')).to_be_hidden()
         # Cancel waiting, then let the ignored response arrive; no next arm is sent.
         scenario.update(tamper=False,slow=True); posts.clear()
-        await page.goto(fixture_url, wait_until='networkidle'); await page.locator('#model-controls > summary').click(); await page.locator('#try-live').click(); await page.locator('#live-run').click()
+        await page.goto(fixture_url, wait_until='networkidle'); await page.locator('#comparison-panel > summary').click(); await page.locator('#model-controls > summary').click(); await page.locator('#try-live').click(); await page.locator('#live-run').click()
         await expect(page.locator('#live-cancel')).to_be_visible(); await page.locator('#live-cancel').click()
         await expect(page.locator('#pip-result')).to_contain_text('Stopped waiting'); release.set(); await page.wait_for_timeout(100)
         assert len(posts)==1; await expect(page.locator('#pip-result')).not_to_contain_text('Mock comparison returned')

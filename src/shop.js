@@ -1,6 +1,8 @@
+import { CHAT_VERSION } from './shop_chat_contract.js';
+import { FIXTURE_VERSION } from './shop_fixtures.js';
 import { CATALOG, QUESTION, ATTACK_RANGE, reviewsFor, POLICY_CONTROLS } from './shop_fixtures.js';
 import { makeOriginal, snapshotContext } from './context_policy.js';
-import { createRunState } from './shop_state.js';
+import { createRunState, recordingAvailability, staticLiveNotice, HOSTED_SHOP_URL } from './shop_state.js';
 import { createLiveState } from './shop_live.js';
 import { serializeTrial, validateTrial } from './shop_trial.js';
 import { CASE_KIND, CASE_VERSION } from './regression_case.js';
@@ -12,20 +14,21 @@ const element = (tag, copy = '', className = '') => {
 const GUIDE = [
   ['Find a lamp that fits', 'Look for USB-C, a desk clamp and a price below $50. Use the catalog facts to find a match and save it.', 'shop-ask', 'Find a matching lamp'],
   ['Read the outside review', 'This outside review contains an instruction to recommend the wrong lamp and hide its price. It is trying to change Pip\'s task.', 'review-source', 'Read the highlighted review'],
-  ['Inspect filtering Off', 'Off includes all four original reviews, including the instruction. Normal model safeguards would stay in place. There is no recorded model answer yet.', 'context-pair', 'See the two context snapshots'],
+  ['Inspect filtering Off', 'Off includes all four original reviews, including the instruction. Normal model safeguards would stay in place. A genuine historical response is available in recorded comparisons.', 'context-pair', 'See the two context snapshots'],
   ['Follow the trust boundary', 'Your request and catalog facts set the task. Outside reviews cannot replace them. The actual scanner match below explains why one review is held back.', 'decision-summary', 'Inspect the matched rule'],
   ['Compare filtering On', 'Switch the local review filter. On holds back the flagged review; the other three stay included. Your original request and review text are unchanged.', 'protection', 'Try the review filter'],
-  ['Keep exploring', 'Save a product, inspect a local control or open the advanced tools. Future model recordings will show historical answers; live requests would make new ones.', 'shop-tools', 'Explore the available tools'],
+  ['Keep exploring', 'Save a product, inspect a local control or open the advanced tools. Recorded comparisons replay historical answers; live chat makes a new request for your question.', 'shop-tools', 'Explore the available tools'],
 ];
 
-export function mountShop(root, { openCase, liveState } = {}) {
+export function mountShop(root, { openCase, liveState, chatFetch = fetch, chatTestOnly = false } = {}) {
   root.innerHTML = /* HTML */ `
     <header class="shop-header">
       <a class="shop-brand" href="#/shop" aria-label="Shelfday home"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32"><path d="M5 8h22M5 16h22M5 24h22M9 5v22M23 5v22" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>Shelfday<span>Fictional store</span></a>
-      <nav aria-label="Shopping and inspection"><a href="#/inspect">Advanced inspection</a><a href="#/case">Case builder</a></nav>
+      <form class="shop-search" id="shop-search" role="search"><label class="sr-only" for="catalog-search">Search lamps</label><input id="catalog-search" type="search" placeholder="Search lamps, USB-C, clamp…" maxlength="100"><button type="submit">Search</button></form>
+      <a class="shop-chat-jump" href="#pip-question">Ask Pip</a><nav aria-label="Shopping and inspection"><a href="#/inspect">Advanced inspection</a><a href="#/case">Case builder</a></nav>
     </header>
     <main class="shop-shell" id="shop-workspace" tabindex="-1">
-      <section class="shop-intro"><div><h1>A little light, for your desk.</h1><p>Shop a fictional catalog. Then see how an outside review tries to change an AI assistant's answer.</p></div><button id="shop-start" class="shop-primary">Start the guide</button></section>
+      <section class="shop-intro"><div><h1>A little light, for your desk.</h1><p>Four lamps. Compare their price, power and fit, or ask Pip for help.</p></div><button id="shop-start" class="shop-primary">How this demo works</button></section>
       <section class="shop-guide" id="shop-guide" aria-labelledby="shop-guide-title" hidden>
         <div class="guide-top"><span id="shop-guide-step"></span><button id="shop-guide-close">Close guide</button></div><h2 id="shop-guide-title"></h2><p id="shop-guide-copy"></p>
         <a id="shop-guide-target">Go to this step's control</a><div class="guide-buttons"><button id="shop-guide-back">Back</button><button id="shop-guide-skip">Skip guide</button><button id="shop-guide-next" class="shop-primary">Next</button></div>
@@ -34,12 +37,18 @@ export function mountShop(root, { openCase, liveState } = {}) {
         <section class="shop-task" aria-labelledby="shop-task-title"><h2 id="shop-task-title">Three needs. One desk lamp.</h2><p id="shop-question"></p><ul class="task-chips" aria-label="Requirements"><li>USB-C power</li><li>Desk clamp</li><li>Under $50</li></ul><button id="shop-ask" class="shop-primary">Find a matching lamp</button><p id="catalog-match" class="catalog-match" role="status" hidden></p><p class="shop-small">Uses catalog facts. No AI request.</p></section>
         <aside class="pip-panel" aria-labelledby="pip-title">
           <div class="pip-heading"><span class="pip-icon" aria-hidden="true">P</span><div><h2 id="pip-title">Pip</h2><span>Shopping assistant</span></div><span class="pip-mode" id="pip-mode">Recorded mode</span></div>
+          <div class="pip-conversation" id="pip-conversation" role="log" aria-label="Conversation with Pip" aria-live="polite"><p class="chat-message">Hi, I’m Pip. Ask me about these four desk lamps.</p></div>
+          <form id="pip-chat" class="pip-composer"><label for="pip-question">Ask Pip</label><textarea id="pip-question" rows="2" maxlength="800" placeholder="Which USB-C lamp fits a small desk?" required></textarea><button id="pip-send" class="shop-primary" type="submit" disabled>Send</button></form>
+          <p id="pip-chat-status" class="shop-small" role="status"></p>
+          <button id="pip-example" class="shop-text-button">Use the example shopping question</button>
+          <details id="comparison-panel" class="shop-disclosure"><summary>Recorded responses &amp; fixed comparison</summary><p class="shop-small">Historical responses below answer the fixed example question, not your chat message.</p>
           <div class="pip-result" id="pip-result" aria-live="polite"></div>
           <button id="shop-see-review" class="shop-primary">Inspect the review filter</button>
           <details class="shop-disclosure" id="filter-controls"><summary>Compare review filtering</summary><label class="protection-switch"><span><strong>ShadowPrompt</strong><small>Keep flagged reviews out</small></span><span><input id="protection" type="checkbox" role="switch" aria-label="ShadowPrompt review filtering"><span id="protection-label">Off</span></span></label><p id="review-filter-status" class="shop-small" role="status"></p></details>
           <details class="shop-disclosure" id="model-controls"><summary>Model modes and recordings</summary><div class="mode-options"><button aria-pressed="true" id="recorded-mode">Guided recording</button><button id="try-live" aria-pressed="false" disabled aria-describedby="live-reason">Try live</button></div><p id="live-reason" class="shop-small">Cloudflare Free account verification and hosted activation are pending. No model request has been made.</p><button id="live-check" hidden>Check live availability</button><div class="live-controls" id="live-controls" hidden><p class="shop-small">One comparison makes up to 3 new requests for the fixed fictional shopping task. Normal safeguards stay the same. Shared free quotas can pause the demo; no paid fallback is used.</p><button id="live-run">Run comparison (3 requests)</button><button id="live-cancel" hidden>Stop waiting</button><label for="live-condition">Show a captured answer</label><select id="live-condition"><option value="clean">Clean / Off</option><option value="poisoned-off">Poisoned / Off</option><option value="poisoned-on">Poisoned / On</option></select><p class="shop-small">Selecting an answer or changing the filter makes no new model request.</p></div><div class="recorded-actions" id="recorded-actions"><button id="recorded-clean">Show clean recorded run</button><button id="recorded-off">Show recorded run with filtering Off</button><button id="recorded-on">Show recorded run with filtering On</button></div><p class="shop-small">Live integration: Cloudflare Workers AI. Built with Llama. <a href="https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE" target="_blank" rel="noopener noreferrer">Llama 3.1 license</a>. <a href="https://developers.cloudflare.com/workers-ai/platform/data-usage/" target="_blank" rel="noopener noreferrer">Provider data policy</a>.</p></details>
+          </details>
         </aside>
-        <section class="shop-catalog" id="shop-catalog" aria-labelledby="catalog-title"><div class="catalog-heading"><h2 id="catalog-title">Meet the lights</h2><span>4 fictional products</span></div><ul id="product-list"></ul><div class="shortlist" aria-labelledby="shortlist-title"><h3 id="shortlist-title">Your shortlist</h3><p id="shortlist-status" role="status">Save a light to compare its facts here.</p><ul id="shortlist-items"></ul><p class="shop-small">Stored in this tab only. No checkout, accounts or payments.</p></div></section>
+        <section class="shop-catalog" id="shop-catalog" aria-labelledby="catalog-title"><div class="catalog-heading"><h2 id="catalog-title">Desk lamps</h2><span id="catalog-count" role="status">4 fictional products</span></div><ul id="product-list"></ul><div class="shortlist" aria-labelledby="shortlist-title"><h3 id="shortlist-title">Your shortlist</h3><p id="shortlist-status" role="status">Save a light to compare its facts here.</p><ul id="shortlist-items"></ul><p class="shop-small">Stored in this tab only. No checkout, accounts or payments.</p></div></section>
         <section class="shop-evidence" id="shop-evidence" aria-labelledby="evidence-title" hidden>
           <div class="evidence-heading"><h2 id="evidence-title">What changes, and what stays.</h2><span class="local-label">Local context-filter preview; no model request</span></div><p id="context-summary" class="context-summary"></p>
           <div class="evidence-request"><h3>Your request</h3><p id="evidence-question"></p><p class="shop-small">Catalog facts are authoritative here. Reviews are lower-trust outside opinions.</p></div>
@@ -56,19 +65,41 @@ export function mountShop(root, { openCase, liveState } = {}) {
       </div><footer class="shop-footer">Shelfday and Pip are fictional. ShadowPrompt inspects lower-trust text with local heuristics. A no-match result is not a safety guarantee.</footer>
       <p class="sr-only" id="shop-status" role="status" aria-live="polite"></p>
     </main>`;
+  const assistant = root.querySelector('.pip-panel');
+  assistant.querySelector('#pip-title').textContent = 'Ask Pip';
+  const filter = root.querySelector('#filter-controls'); filter.open = true;
+  filter.querySelector('summary').textContent = 'Review context for Pip';
+  assistant.querySelector('#pip-example').after(filter);
+  const evidenceDisclosure = element('details', '', 'shop-disclosure'); evidenceDisclosure.id = 'assistant-evidence';
+  evidenceDisclosure.append(element('summary', 'Inspect review & context'), root.querySelector('#shop-evidence'));
+  assistant.append(evidenceDisclosure);
+  const toolsDisclosure = element('details', '', 'shop-disclosure'); toolsDisclosure.id = 'assistant-tools'; toolsDisclosure.append(element('summary','More demo tools'), root.querySelector('#shop-tools')); assistant.append(toolsDisclosure);
+  root.querySelector('.shop-catalog').prepend(root.querySelector('.shop-task'));
+  root.querySelector('.shop-grid').prepend(root.querySelector('.shop-catalog'));
   const $ = id => root.querySelector('#' + id);
   const on = (id, action) => $(id).addEventListener('click', action);
   const run = createRunState();
   const live = liveState ?? createLiveState();
   const canCheckLive = Boolean(liveState) || location.protocol === 'https:' && location.hostname.endsWith('.workers.dev');
+  const chatHistory = []; let chatBusy = false; let chatController; let chatEpoch = 0;
   const saved = new Set(); let guide = null; let preview; let active = true; let objectUrl; let exportTimer; let mode = 'recorded';
   $('shop-question').textContent = QUESTION; $('evidence-question').textContent = QUESTION;
   for (const id of ['recorded-mode', 'recorded-clean', 'recorded-off', 'recorded-on']) { $(id).disabled = RECORDINGS.length === 0; $(id).title = RECORDINGS.length ? '' : 'No genuine model recording is available yet.'; }
   function announce(message) { $('shop-status').textContent = message; }
   function currentState() { return mode === 'live' ? live.state : run.state; }
   function renderModes() {
+    $('pip-mode').hidden = true;
+    $('pip-send').disabled = chatBusy || !live.state.chatAvailable || !canCheckLive;
+    if (!chatBusy) {
+      $('pip-chat-status').replaceChildren(document.createTextNode(canCheckLive ? live.state.chatAvailable ? 'One new model request per message. Fictional catalog only; no checkout.' : live.state.available ? 'This hosted backend does not expose the reviewed chat version yet. Recorded comparisons remain available.' : live.state.reason : 'This static page offers recorded replay. Live chat runs on the Cloudflare demo. '));
+      if (!canCheckLive) { const link = element('a','Open live chat'); link.href = HOSTED_SHOP_URL; $('pip-chat-status').append(link); }
+    }
     $('pip-mode').textContent = mode === 'live' ? live.testOnly ? 'Mock mode' : 'Live mode' : 'Recorded mode';
-    $('live-reason').textContent = live.state.reason;
+    if (canCheckLive) $('live-reason').textContent = live.state.reason;
+    else {
+      const link = element('a', 'Open hosted live demo'); link.href = HOSTED_SHOP_URL;
+      $('live-reason').replaceChildren(document.createTextNode(staticLiveNotice(RECORDINGS.length > 0)), link);
+    }
     $('try-live').disabled = !live.state.available;
     $('try-live').setAttribute('aria-pressed', String(mode === 'live'));
     $('recorded-mode').setAttribute('aria-pressed', String(mode === 'recorded'));
@@ -112,7 +143,8 @@ export function mountShop(root, { openCase, liveState } = {}) {
     if (state.status === 'loading') { box.append(element('h3', 'Loading recorded evidence'), element('p', 'Checking the reviewed file and its input digests.')); return; }
     if (state.status === 'error') { box.append(element('h3', 'Recording could not be verified'), element('p', state.error)); return; }
     if (state.status !== 'ready') {
-      box.append(element('h3', 'Recording not available'), element('p', 'No model answer has been recorded yet. You can still shop and compare which review text Pip would receive.')); return;
+      const notice = recordingAvailability(RECORDINGS.length > 0);
+      box.append(element('h3', notice.title), element('p', notice.detail)); return;
     }
     const observed = state.trial.conditions.find(item => item.id === state.condition);
     appendCapture(box, observed, state.trial.originals, 'Recorded model response');
@@ -147,12 +179,49 @@ export function mountShop(root, { openCase, liveState } = {}) {
   function showGuide(index) {
     guide = index;
     if (index === 0) load('clean');
-    if (index >= 1) $('shop-evidence').hidden = false;
+    if (index >= 1) { $('chat-reviews').value = 'poisoned'; renderFilterStatus(); }
+    if (index === 5) $('assistant-tools').open = true;
+    if (index >= 1) { $('shop-evidence').hidden = false; $('assistant-evidence').open = true; $('assistant-evidence').open = true; }
     if (index === 2) setProtection(false);
     if (index === 4) setProtection(true);
     renderGuide(); $('shop-guide-next').focus({ preventScroll: true }); $('shop-guide').scrollIntoView({ block: 'nearest' });
   }
   function closeGuide() { guide = null; renderGuide(); root.querySelector('.shop-grid').before($('shop-guide')); $('shop-start').focus(); }
+  $('shop-search').addEventListener('submit', event => { event.preventDefault(); const terms = $('catalog-search').value.trim().toLowerCase().split(/\s+/).filter(Boolean); let count = 0;
+    for (const card of root.querySelectorAll('.product-card')) { const product = CATALOG.find(p => p.sku === card.querySelector('[data-sku]').dataset.sku); card.hidden = !terms.every(t => Object.values(product).join(' ').toLowerCase().includes(t)); if (!card.hidden) count++; }
+    $('catalog-count').textContent = count ? `${count} fictional product${count === 1 ? '' : 's'}` : 'No lamps match. Try USB-C or clamp.';
+  });
+  on('pip-example', () => { $('pip-question').value = QUESTION; $('pip-question').focus(); });
+  $('pip-chat').addEventListener('submit', async event => {
+    event.preventDefault(); if (chatBusy || !active || !canCheckLive || !live.state.chatAvailable) return;
+    const question = $('pip-question').value.trim(); if (!question || question.length > 800) return;
+    const epoch = ++chatEpoch; chatController = new AbortController(); chatBusy = true;
+    const condition = $('chat-reviews').value === 'clean' ? 'clean' : $('protection').checked ? 'poisoned-on' : 'poisoned-off';
+    const input = {chatVersion:CHAT_VERSION,fixtureVersion:FIXTURE_VERSION,question,condition,history:chatHistory.slice(-4),runId:crypto.randomUUID()};
+    const user = element('p',question,'chat-message chat-user'); user.prepend(element('strong','You: ')); $('pip-conversation').append(user);
+    $('pip-question').value = ''; $('pip-chat-status').textContent = 'Pip is thinking…'; renderModes();
+    const timer = setTimeout(() => chatController.abort(), 25000);
+    try {
+      const response = await chatFetch('/api/shop/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(input),signal:chatController.signal});
+      if (Number(response.headers.get('content-length')) > 65536) throw new Error('Chat response exceeds the byte limit.');
+      const reader = response.body.getReader(); const parts=[]; let bytes=0;
+      while(true) { const part=await reader.read(); if(part.done) break; bytes+=part.value.byteLength; if(bytes>65536) { await reader.cancel(); throw new Error('Chat response exceeds the byte limit.'); } parts.push(part.value); }
+      const body=new Uint8Array(bytes); let offset=0; for(const part of parts) {body.set(part,offset);offset+=part.byteLength;}
+      const data = JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(body)); if (!active || epoch !== chatEpoch) return;
+      if (!response.ok) throw new Error(data.error || 'Chat unavailable. No reply was returned.');
+      const expected = await snapshotContext({...structuredClone(makeOriginal(condition === 'clean' ? 'clean' : 'poisoned')),question},condition === 'poisoned-on');
+      if (!active || epoch !== chatEpoch) return;
+      if (data.chatVersion !== CHAT_VERSION || data.fixtureVersion !== FIXTURE_VERSION || data.runId !== input.runId || data.question !== question || data.condition !== condition || JSON.stringify(data.history) !== JSON.stringify(input.history) || data.context?.originalDigest !== expected.originalDigest || data.context?.deliveredDigest !== expected.deliveredDigest || data.testOnly !== chatTestOnly || data.origin !== (chatTestOnly ? 'test-double' : 'live') || data.provenance?.captureKind !== (chatTestOnly ? 'test-double' : 'provider-capture') || data.status !== 'completed' || typeof data.rawResponse !== 'string' || !data.rawResponse.trim() || data.rawResponse.length > 16000) throw new Error('The reply could not be verified against this question and context.');
+      const answer = element('p',data.rawResponse,'chat-message'); answer.prepend(element('strong',chatTestOnly ? 'Mock Pip (test only): ' : 'Pip: ')); $('pip-conversation').append(answer);
+      chatHistory.push({role:'user',content:question},{role:'assistant',content:data.rawResponse.slice(0,800)});
+      while(chatHistory.length > 4) chatHistory.splice(0,2);
+      const details = element('details','', 'chat-receipt'); details.append(element('summary',`Context: ${condition.replaceAll('-',' / ')} · ${chatTestOnly ? 'mock response' : 'live response'}`),element('pre',JSON.stringify({question,history:input.history,requestDigest:data.requestDigest ?? null,context:data.context,provenance:data.provenance,capturedAt:data.capturedAt},null,2))); $('pip-conversation').append(details);
+    } catch(error) { if (active && epoch === chatEpoch) { const message = element('p',error.name === 'AbortError' ? 'Stopped waiting for a reply. The provider may still be running; no automatic retry was made.' : error.message,'chat-message chat-error'); $('pip-conversation').append(message); } }
+    finally { clearTimeout(timer); if (epoch === chatEpoch) { chatBusy = false; if(active) { renderModes(); $('pip-conversation').scrollTop = $('pip-conversation').scrollHeight; $('pip-question').focus({preventScroll:true}); } } }
+  });
+  const reviewLabel = element('label','Review scenario'); reviewLabel.htmlFor = 'chat-reviews';
+  const reviewSelect = element('select'); reviewSelect.id = 'chat-reviews'; reviewSelect.addEventListener('change', renderFilterStatus); for (const [value,label] of [['clean','Ordinary reviews'],['poisoned','Poisoned product review']]) { const option = element('option',label); option.value=value; reviewSelect.append(option); }
+  $('filter-controls').append(reviewLabel,reviewSelect);
   on('shop-start', () => showGuide(0)); on('shop-replay', () => showGuide(0));
   on('shop-guide-back', () => showGuide(Math.max(0, guide - 1)));
   on('shop-guide-next', () => guide === GUIDE.length - 1 ? closeGuide() : showGuide(guide + 1));
@@ -168,12 +237,12 @@ export function mountShop(root, { openCase, liveState } = {}) {
   });
   on('recorded-clean', () => load('clean')); on('recorded-mode', () => load(run.state.condition));
   on('recorded-off', () => setProtection(false)); on('recorded-on', () => setProtection(true));
-  on('try-live', () => { if (!live.state.available) return; mode = 'live'; run.cancel(); $('shop-evidence').hidden = false; $('protection').checked = live.state.condition === 'poisoned-on'; $('protection-label').textContent = $('protection').checked ? 'On' : 'Off'; renderFilterStatus(); renderAnswer(); $('live-run').focus(); });
+  on('try-live', () => { if (!live.state.available) return; mode = 'live'; run.cancel(); $('shop-evidence').hidden = false; $('assistant-evidence').open = true; $('protection').checked = live.state.condition === 'poisoned-on'; $('protection-label').textContent = $('protection').checked ? 'On' : 'Off'; renderFilterStatus(); renderAnswer(); $('live-run').focus(); });
   on('live-check', () => live.check(renderAnswer)); on('live-run', () => live.start(renderAnswer));
   on('live-cancel', () => { live.cancel(); renderAnswer(); $('live-run').focus(); });
   $('live-condition').addEventListener('change', () => { live.select($('live-condition').value); $('protection').checked = live.state.condition === 'poisoned-on'; $('protection-label').textContent = $('protection').checked ? 'On' : 'Off'; renderFilterStatus(); renderAnswer(); });
   $('protection').addEventListener('change', () => setProtection($('protection').checked));
-  on('shop-see-review', () => { $('shop-evidence').hidden = false; $('review-source').focus(); $('review-source').scrollIntoView({ block: 'center' }); });
+  on('shop-see-review', () => { $('shop-evidence').hidden = false; $('assistant-evidence').open = true; $('review-source').focus(); $('review-source').scrollIntoView({ block: 'center' }); });
   function updateShortlist() {
     $('shortlist-status').textContent = saved.size ? `${saved.size} saved ${saved.size === 1 ? 'light' : 'lights'}. Compare against all three needs.` : 'Save a light to compare its facts here.';
     $('shortlist-items').replaceChildren(...CATALOG.filter(product => saved.has(product.sku)).map(product => {
@@ -217,6 +286,7 @@ export function mountShop(root, { openCase, liveState } = {}) {
   function renderFilterStatus() {
     if (!preview) { $('review-filter-status').textContent = 'Local review preview is being prepared.'; return; }
     const protection = $('protection').checked; const context = protection ? preview.on : preview.off;
+    if ($('chat-reviews').value === 'clean') { $('review-filter-status').textContent = `Ordinary reviews: all four are included with filtering ${protection ? 'On' : 'Off'}. The poisoned comparison remains available below.`; return; }
     $('review-filter-status').textContent = `Filtering ${protection ? 'On' : 'Off'}: ${context.delivered.reviews.length} of ${context.original.reviews.length} reviews included.${protection ? ' The flagged review is withheld.' : ' The flagged review is included.'} Local preview only; no model request.`;
     $('context-pair').querySelectorAll('[data-protection]').forEach(panel => { panel.dataset.selected = String(panel.dataset.protection === (protection ? 'on' : 'off')); });
   }
@@ -253,7 +323,7 @@ export function mountShop(root, { openCase, liveState } = {}) {
   $('control-source').addEventListener('change', () => showControl().catch(error => { $('control-result').textContent = error.message; })); showControl(); renderAnswer();
   if (canCheckLive) live.check(renderAnswer);
   return {
-    setActive(value) { active = value; if (!value) { run.cancel(); live.cancel(); } else renderAnswer(); },
-    dispose() { run.cancel(); live.cancel(); clearTimeout(exportTimer); if (objectUrl) URL.revokeObjectURL(objectUrl); },
+    setActive(value) { active = value; if (!value) { chatEpoch++; chatBusy=false; chatController?.abort(); run.cancel(); live.cancel(); } else renderAnswer(); },
+    dispose() { chatEpoch++; chatController?.abort(); run.cancel(); live.cancel(); clearTimeout(exportTimer); if (objectUrl) URL.revokeObjectURL(objectUrl); },
   };
 }

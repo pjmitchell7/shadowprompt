@@ -1,3 +1,4 @@
+import { CHAT_VERSION, validChatInput, chatContext } from '../src/shop_chat_contract.js';
 import http from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { CATALOG, FIXTURE_VERSION, QUESTION, reviewsFor } from '../src/shop_fixtures.js';
@@ -24,7 +25,7 @@ export function createShopServer({ testProvider = null, timeoutMs = 2000, rateLi
     const path = request.url;
     if (request.method === 'GET' && path === '/api/shop/status') { reply(response, 200, { available: false, reason: UNAVAILABLE, fixtureVersion: FIXTURE_VERSION, scope: 'loopback-only', testOnly: Boolean(testProvider) }); return; }
     if (request.method === 'GET' && path === '/api/shop/catalog') { reply(response, 200, { fixtureVersion: FIXTURE_VERSION, question: QUESTION, products: CATALOG, reviews: { clean: reviewsFor('clean'), poisoned: reviewsFor('poisoned') } }); return; }
-    if (request.method !== 'POST' || path !== '/api/shop/run') { reply(response, 404, { error: 'Unknown local shop endpoint.' }); return; }
+    if (request.method !== 'POST' || !['/api/shop/run','/api/shop/chat'].includes(path)) { reply(response, 404, { error: 'Unknown local shop endpoint.' }); return; }
     const now = Date.now(); timestamps = timestamps.filter(time => now - time < rateWindowMs);
     if (timestamps.length >= rateLimit) { response.setHeader('retry-after', String(Math.ceil(rateWindowMs / 1000))); reply(response, 429, { error: 'Local request rate exceeded.' }); return; }
     timestamps.push(now);
@@ -36,24 +37,27 @@ export function createShopServer({ testProvider = null, timeoutMs = 2000, rateLi
       for await (const chunk of request) { size += chunk.length; if (size > 8192) { reply(response, 413, { error: 'Request exceeds 8,192 bytes.' }); return; } chunks.push(chunk); }
       let input;
       try { input = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { reply(response, 400, { error: 'Invalid JSON.' }); return; }
-      if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['fixtureVersion', 'question', 'condition', 'runId'].includes(key)) || input.fixtureVersion !== FIXTURE_VERSION || input.question !== QUESTION || !['clean', 'poisoned-off', 'poisoned-on'].includes(input.condition) || typeof input.runId !== 'string' || !/^[\w-]{1,80}$/.test(input.runId)) { reply(response, 400, { error: 'Use the versioned fixed fixture, supported question, condition and bounded runId. Client source lists and instructions are rejected.' }); return; }
+      const chat = path === '/api/shop/chat';
+      if (chat ? !validChatInput(input) : !input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['fixtureVersion', 'question', 'condition', 'runId'].includes(key)) || input.fixtureVersion !== FIXTURE_VERSION || input.question !== QUESTION || !['clean', 'poisoned-off', 'poisoned-on'].includes(input.condition) || typeof input.runId !== 'string' || !/^[\w-]{1,80}$/.test(input.runId)) { reply(response, 400, { error: 'Use the versioned fixed fixture, supported question, condition and bounded runId. Client source lists and instructions are rejected.' }); return; }
       // The server reconstructs all trusted fields and enforces policy itself.
-      const context = await snapshotContext(makeOriginal(input.condition === 'clean' ? 'clean' : 'poisoned'), input.condition === 'poisoned-on');
+      const prepared = chat ? await chatContext(input) : null;
+      const context = prepared?.context ?? await snapshotContext(makeOriginal(input.condition === 'clean' ? 'clean' : 'poisoned'), input.condition === 'poisoned-on');
       if (!testProvider) { reply(response, 503, { runId: input.runId, available: false, error: UNAVAILABLE, context }); return; }
       if (active >= maxConcurrent || attempts >= maxAttempts) { reply(response, 429, { error: 'Local concurrency or attempt cap reached.' }); return; }
       const limits = Object.freeze({ inputTokens: 12000, outputTokens: 1000 });
-      const tokens = testProvider.countInputTokens(context.delivered);
+      const tokens = testProvider.countInputTokens(prepared?.messages ?? context.delivered);
       if (!Number.isSafeInteger(tokens) || tokens < 0 || tokens > limits.inputTokens) { reply(response, 413, { error: 'Adapter input token bound exceeded.' }); return; }
       active++; attempts++; controller = new AbortController(); controllers.add(controller);
       const closed = () => { if (!response.writableEnded) controller.abort(); };
       response.once('close', closed);
       const result = await Promise.race([
-        testProvider.generate(context, { signal: controller.signal, limits }),
+        testProvider.generate(context, { signal: controller.signal, limits, messages: prepared?.messages }),
         new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error('Adapter timeout.')); }, timeoutMs); }),
       ]);
       if (!result || Object.keys(result).some(key => !['status', 'rawResponse', 'recommendation'].includes(key)) || !['completed', 'refused', 'incomplete', 'error'].includes(result.status) || typeof result.rawResponse !== 'string' || result.rawResponse.length > 16000 || Buffer.byteLength(JSON.stringify(result)) > 32000) throw new Error('Invalid bounded adapter response.');
       const outputTokens = testProvider.countOutputTokens(result.rawResponse);
       if (!Number.isSafeInteger(outputTokens) || outputTokens < 0 || outputTokens > limits.outputTokens) throw new Error('Adapter output token bound exceeded.');
+      if (chat) { reply(response, 200, { chatVersion: CHAT_VERSION, fixtureVersion: FIXTURE_VERSION, runId: input.runId, question: input.question, condition: input.condition, history: input.history, origin: 'test-double', testOnly: true, status: result.status, rawResponse: result.rawResponse, context, provenance: {captureKind:'test-double',provider:'Local mocked provider; no model request'}, error:null }); return; }
       reply(response, 200, { runId: input.runId, origin: 'test-double', testOnly: true, context, outcome: result, evaluation: evaluateRecommendation(result.rawResponse, result.recommendation, result.status) });
     } catch (error) { reply(response, error.message === 'Adapter timeout.' ? 504 : 502, { error: error.message === 'Adapter timeout.' ? error.message : 'Local adapter failed. No successful model outcome recorded.' }); }
     finally { clearTimeout(timer); if (controller) { active--; controllers.delete(controller); } }

@@ -1,3 +1,4 @@
+import { CHAT_VERSION } from './shop_chat_contract.js';
 import { APPLICATION_VERSION, freeze } from './context_policy.js';
 import { FIXTURE_VERSION, QUESTION } from './shop_fixtures.js';
 import { WORKERS_MODEL, WORKERS_VERSION } from './cloud_contract.js';
@@ -22,7 +23,7 @@ async function readJson(response, signal, maximum = MAX_TRIAL_BYTES) {
 export function createLiveState({ fetcher = fetch, testOnly = false, timeoutMs = 25000 } = {}) {
   if (typeof testOnly !== 'boolean' || !Number.isSafeInteger(timeoutMs) || timeoutMs < 1) throw new Error('Invalid live client test flag or deadline.');
   let revision = 0; let controller;
-  const state = { status: 'unavailable', available: false, reason: 'Cloudflare Free account verification and hosted activation are pending. No model request has been made.', error: null, condition: 'poisoned-on', captures: Object.freeze([]), attempts: Object.freeze([]), trial: null, progress: null };
+  const state = { status: 'unavailable', chatAvailable: false, available: false, reason: 'Cloudflare Free account verification and hosted activation are pending. No model request has been made.', error: null, condition: 'poisoned-on', captures: Object.freeze([]), attempts: Object.freeze([]), trial: null, progress: null };
   async function request(path, options, signal, maximum) {
     const local = new AbortController(); let timer; let timedOut = false;
     const stop = () => local.abort(); signal.addEventListener('abort', stop, { once: true });
@@ -45,12 +46,12 @@ export function createLiveState({ fetcher = fetch, testOnly = false, timeoutMs =
     },
     async check(onChange = () => {}) {
       api.cancel(); const current = revision; controller = new AbortController();
-      state.available = false; state.reason = 'Checking hosted live availability. No model request is made.'; onChange();
+      state.chatAvailable = false; state.available = false; state.reason = 'Checking hosted live availability. No model request is made.'; onChange();
       try {
         const { response, body } = await request('/api/shop/status', { method: 'GET' }, controller.signal, 8192);
         if (current !== revision) return;
         if (!response.ok || !body || body.scope !== 'workers-free' || body.testOnly !== testOnly || body.fixtureVersion !== FIXTURE_VERSION || body.applicationVersion !== APPLICATION_VERSION || body.workerVersion !== WORKERS_VERSION || body.model !== WORKERS_MODEL || typeof body.available !== 'boolean' || typeof body.reason !== 'string' || body.reason.length > 2000) throw new Error('Hosted availability could not be verified for the approved model and fixture.');
-        state.available = body.available; state.reason = body.reason;
+        state.available = body.available; state.chatAvailable = body.available && body.chatVersion === CHAT_VERSION; state.reason = body.reason;
       } catch (error) { if (current === revision) state.reason = error.name === 'AbortError' ? 'Availability check stopped.' : 'Hosted live mode is unavailable or could not be verified. No model request was made.'; }
       if (current === revision) onChange();
     },

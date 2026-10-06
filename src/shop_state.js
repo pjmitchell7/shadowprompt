@@ -33,3 +33,13 @@ export function createRunState() {
     },
   };
 }
+
+export const HOSTED_SHOP_URL = 'https://shadowprompt-shelfday.pjmitchell.workers.dev/';
+export function recordingAvailability(hasRecording) {
+  return hasRecording
+    ? { title: 'Recording ready to replay', detail: 'A reviewed genuine model recording is available. Start the guide or choose a recorded run to view it. No new model request is made.' }
+    : { title: 'Recording not available', detail: 'No model answer has been recorded yet. You can still shop and compare which review text Pip would receive.' };
+}
+export function staticLiveNotice(hasRecording) {
+  return `${hasRecording ? 'Recorded replay is available here.' : 'No reviewed recording is available here.'} New live comparisons run on the hosted Cloudflare demo. This page makes no live model requests. `;
+}

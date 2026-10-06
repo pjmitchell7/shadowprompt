@@ -1,3 +1,4 @@
+import { CHAT_VERSION, validChatInput, chatContext } from '../src/shop_chat_contract.js';
 import { CATALOG, FIXTURE_VERSION, QUESTION, reviewsFor } from '../src/shop_fixtures.js';
 import { APPLICATION_VERSION, digest, makeOriginal, snapshotContext } from '../src/context_policy.js';
 import { evaluateRecommendation } from '../src/shop_trial.js';
@@ -10,7 +11,7 @@ const encoder = new TextEncoder();
 const reply = (status, data, extra = {}) => Response.json(data, { status, headers: { 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', ...extra } });
 const validInput = input => input && typeof input === 'object' && !Array.isArray(input) && Object.keys(input).every(key => ['fixtureVersion', 'question', 'condition', 'runId'].includes(key)) && input.fixtureVersion === FIXTURE_VERSION && input.question === QUESTION && ['clean', 'poisoned-off', 'poisoned-on'].includes(input.condition) && typeof input.runId === 'string' && /^[\w-]{1,80}$/.test(input.runId);
 
-async function readInput(request, timeoutMs) {
+async function readInput(request, timeoutMs, chat = false) {
   if (!/^application\/json(?:;|$)/i.test(request.headers.get('content-type') || '')) throw { http: 415, message: 'Use application/json.' };
   if (Number(request.headers.get('content-length')) > 8192) throw { http: 413, message: 'Request exceeds 8,192 bytes.' };
   const reader = request.body?.getReader();
@@ -29,7 +30,7 @@ async function readInput(request, timeoutMs) {
       for (const part of chunks) { bytes.set(part, offset); offset += part.byteLength; }
       let input;
       try { input = JSON.parse(new TextDecoder('utf8', { fatal: true }).decode(bytes)); } catch { throw { http: 400, message: 'Invalid UTF-8 JSON.' }; }
-      if (!validInput(input)) throw { http: 400, message: 'Use the versioned fixed fixture, supported condition and bounded runId. Client prompts, sources, models, tools and URLs are rejected.' };
+      if (!(chat ? validChatInput(input) : validInput(input))) throw { http: 400, message: 'Use the versioned fixed fixture, supported condition and bounded runId. Client prompts, sources, models, tools and URLs are rejected.' };
       return input;
     })();
     return await Promise.race([reading, new Promise((_, reject) => { timer = setTimeout(() => { reader.cancel().catch(() => {}); reject({ http: 408, message: 'Request body deadline exceeded.' }); }, timeoutMs); })]);
@@ -71,9 +72,9 @@ export function createShopWorker({ testOnly = false, timeoutMs = 20000, bodyTime
       }
       // Origin checks prevent browser cross-origin use; they are not authentication.
       if (url.protocol !== 'https:' || !url.hostname.endsWith('.workers.dev') || request.headers.get('origin') && request.headers.get('origin') !== url.origin || ['cross-site', 'same-site'].includes(request.headers.get('sec-fetch-site'))) return reply(403, { error: 'Use the deployed HTTPS same-origin Workers site.' });
-      if (request.method === 'GET' && url.pathname === '/api/shop/status') return reply(200, { available: ready(env), reason: ready(env) ? 'Fixed-fixture Workers AI demo on a verified Free account; shared daily limits can make it temporarily unavailable.' : unavailableReason(), fixtureVersion: FIXTURE_VERSION, applicationVersion: APPLICATION_VERSION, workerVersion: WORKERS_VERSION, model: WORKERS_MODEL, scope: 'workers-free', testOnly });
+      if (request.method === 'GET' && url.pathname === '/api/shop/status') return reply(200, { available: ready(env), reason: ready(env) ? 'Catalog-only Workers AI chat and fixed comparisons on a verified Free account; shared daily limits can make it temporarily unavailable.' : unavailableReason(), chatVersion: CHAT_VERSION, fixtureVersion: FIXTURE_VERSION, applicationVersion: APPLICATION_VERSION, workerVersion: WORKERS_VERSION, model: WORKERS_MODEL, scope: 'workers-free', testOnly });
       if (request.method === 'GET' && url.pathname === '/api/shop/catalog') return reply(200, { fixtureVersion: FIXTURE_VERSION, question: QUESTION, products: CATALOG, reviews: { clean: reviewsFor('clean'), poisoned: reviewsFor('poisoned') } });
-      if (request.method !== 'POST' || url.pathname !== '/api/shop/run' || url.search) return reply(404, { error: 'Unknown shop endpoint.' });
+      if (request.method !== 'POST' || !['/api/shop/run', '/api/shop/chat'].includes(url.pathname) || url.search) return reply(404, { error: 'Unknown shop endpoint.' });
       if (!ready(env)) return reply(attempts >= maxAttempts || Date.now() < quotaUntil ? 429 : 503, { available: false, error: unavailableReason(), errorCode: Date.now() < quotaUntil ? 'free-quota-exhausted' : paidBlocked ? 'paid-plan-required' : null });
       // Cloudflare supplies this header at the edge. Retain only an ephemeral hash.
       const peer = request.headers.get('cf-connecting-ip');
@@ -85,10 +86,12 @@ export function createShopWorker({ testOnly = false, timeoutMs = 20000, bodyTime
       if (times.length >= rateLimit) return reply(429, { error: 'Demo request rate reached.' }, { 'retry-after': '60' });
       times.push(now); clients.set(key, times);
       let input;
-      try { input = await readInput(request, bodyTimeoutMs); } catch (error) { return reply(error.http || 400, { error: error.message || 'Invalid fixture request.' }); }
+      try { input = await readInput(request, bodyTimeoutMs, url.pathname === '/api/shop/chat'); } catch (error) { return reply(error.http || 400, { error: error.message || 'Invalid fixture request.' }); }
       if (active >= maxConcurrent || attempts >= maxAttempts) return reply(429, { error: 'Demo concurrency or isolate attempt cap reached.' });
-      const context = await snapshotContext(makeOriginal(input.condition === 'clean' ? 'clean' : 'poisoned'), input.condition === 'poisoned-on');
-      const messages = [
+      const chat = url.pathname === '/api/shop/chat';
+      const prepared = chat ? await chatContext(input) : null;
+      const context = prepared?.context ?? await snapshotContext(makeOriginal(input.condition === 'clean' ? 'clean' : 'poisoned'), input.condition === 'poisoned-on');
+      const messages = prepared?.messages ?? [
         { role: 'system', content: context.delivered.instructions },
         { role: 'user', content: JSON.stringify({ question: context.delivered.question, catalog: context.delivered.catalog, reviews: context.delivered.reviews }) },
       ];
@@ -116,6 +119,7 @@ export function createShopWorker({ testOnly = false, timeoutMs = 20000, bodyTime
       }
       finally { clearTimeout(timer); }
       const provenance = { captureKind: testOnly ? 'test-double' : 'provider-capture', provider: testOnly ? 'Mock Cloudflare binding (no real model request)' : 'Cloudflare Workers AI', requestedModel: WORKERS_MODEL, returnedModel: null, settings: MODEL_SETTINGS, safety: 'normal-provider-safeguards', limits: LIMITS, responseId: null, requestId: null, finishReason: null, usage, cost: null, latencyMs: performance.now() - started };
+      if (chat) return reply(failure?.http ?? 200, { chatVersion: CHAT_VERSION, fixtureVersion: FIXTURE_VERSION, runId: input.runId, question: input.question, condition: input.condition, history: input.history, requestDigest: await digest({input,messages}), origin: testOnly ? 'test-double' : 'live', testOnly, status, rawResponse, context, provenance, capturedAt, error: failure?.message ?? null, errorCode: failure?.code ?? null });
       const run = { id: input.condition, attemptId: input.runId, capturedAt, originalId: input.condition === 'clean' ? 'clean' : 'poisoned', originalDigest: context.originalDigest, protection: context.protection, policyVersion: context.policyVersion, scannerVersion: context.scannerVersion, threshold: context.threshold, delivered: context.delivered, deliveredDigest: context.deliveredDigest, decisions: context.decisions, provenance, status, rawResponse, responseDigest: await digest(rawResponse), recommendation, evaluation: evaluateRecommendation(rawResponse, recommendation, status), error: failure?.message ?? null };
       return reply(failure?.http ?? 200, { runId: input.runId, origin: testOnly ? 'test-double' : 'live', testOnly, applicationVersion: APPLICATION_VERSION, workerVersion: WORKERS_VERSION, fixtureVersion: FIXTURE_VERSION, original: { id: run.originalId, input: context.original, digest: context.originalDigest }, run, error: failure?.message ?? null, errorCode: failure?.code ?? null });
     },
