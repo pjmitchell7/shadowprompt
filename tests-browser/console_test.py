@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import socket
 import subprocess
@@ -43,6 +44,7 @@ def wait_for_server(url, process, log, port):
         log.seek(0)
         startup = log.read().decode("utf-8", errors="replace")
         log.seek(0, 2)
+        startup = re.sub(r"\x1b\[[0-9;]*m", "", startup)
         if "Local:" in startup and f":{port}/" in startup:
             try:
                 with urllib.request.urlopen(url, timeout=1) as response:
