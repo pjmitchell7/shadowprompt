@@ -299,6 +299,52 @@ def run_checks(url, artifacts):
         assert sum(trace["decisions"].values()) == len(trace["turns"])
         assert trace["provenance"]["modelConnection"] is False
 
+        # Turn a suspicious retrieved snippet into a local, reusable case.
+        page.locator("#case-panel > summary").focus()
+        page.keyboard.press("Enter")
+        expect(page.locator("#case-form")).to_be_visible()
+        page.locator("#case-fixture").click()
+        expect(page.locator("#case-comparison")).to_contain_text("not-evaluated")
+        page.locator('[data-case="cleanResponse"]').fill("30 days")
+        page.locator("#case-clean-supplied").check()
+        page.locator('[data-case="poisonedResponse"]').fill("I cannot answer.")
+        page.locator("#case-poisoned-supplied").check()
+        page.get_by_role("button", name="Review case").click()
+        expect(page.locator("#case-comparison")).to_contain_text("Literal contract: pass")
+        expect(page.locator("#case-comparison")).to_contain_text("Literal contract: fail")
+        with page.expect_download() as case_download:
+            page.locator("#case-export").click()
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "case.json"
+            case_download.value.save_as(destination)
+            case_bytes = destination.read_bytes()
+        saved_case = json.loads(case_bytes)
+        assert saved_case["schemaVersion"] == 1
+        assert saved_case["sourceNotes"].startswith("Synthetic fixture")
+        assert saved_case["poisonedResponse"] == "I cannot answer."
+        page.locator('[data-case="title"]').fill("Keep this form")
+        expect(page.locator("#case-comparison")).to_be_empty()
+        page.locator("#case-import").set_input_files({
+            "name": "bad.json", "mimeType": "application/json", "buffer": b"{bad",
+        })
+        expect(page.locator('[data-case="title"]')).to_have_value("Keep this form")
+        expect(page.locator("#case-feedback")).to_contain_text("Import failed; current form kept")
+        page.locator("#case-import").set_input_files({
+            "name": "case.json", "mimeType": "application/json", "buffer": case_bytes,
+        })
+        expect(page.locator('[data-case="title"]')).to_have_value(saved_case["title"])
+        expect(page.locator('[data-case="poisonedContext"]')).to_have_value(saved_case["poisonedContext"])
+        page.locator('[data-case="question"]').fill('<img src=x onerror="window.__caseUnsafe=true">')
+        page.get_by_role("button", name="Review case").click()
+        assert page.evaluate("window.__caseUnsafe === undefined")
+        expect(page.locator("#case-comparison")).to_contain_text('<img src=x onerror="window.__caseUnsafe=true">')
+        page.set_viewport_size({"width": 320, "height": 900})
+        assert_no_overflow(page)
+        if artifacts:
+            page.screenshot(path=str(artifacts / "case-320.png"), full_page=True)
+        page.set_viewport_size({"width": 1440, "height": 900})
+        page.locator("#case-panel > summary").click()
+
         for view in ["top", "attacker", "isometric"]:
             page.locator(f'[data-view="{view}"]').click()
             expect(page.locator(f'[data-view="{view}"]')).to_have_attribute("aria-pressed", "true")

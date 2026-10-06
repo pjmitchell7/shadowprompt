@@ -1200,3 +1200,27 @@ textarea::placeholder {
     scroll-behavior: auto !important;
   }
 }
+
+.case-panel { margin: 16px 0; }
+.case-panel > summary { cursor: pointer; padding: 18px 22px; font-weight: 600; }
+.case-panel > summary:focus-visible { outline: 2px solid var(--green); outline-offset: -4px; }
+.case-content { padding: 0 22px 22px; }
+.case-content > p, .case-form > p { color: var(--muted); line-height: 1.5; }
+.case-form { display: grid; gap: 16px; margin-top: 18px; }
+.case-form label, .case-import { display: grid; gap: 7px; font-weight: 500; }
+.case-form input:not([type='checkbox']), .case-form textarea, .case-import input { width: 100%; padding: 10px; }
+.case-form input[type='checkbox'] { width: 18px; height: 18px; margin: 0 8px 0 0; }
+.case-form label:has(input[type='checkbox']) { display: flex; align-items: center; margin-bottom: 8px; }
+.case-pair, .case-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.case-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.case-actions button { min-height: 44px; }
+.case-import { margin-top: 20px; }
+.case-card { min-width: 0; padding: 14px; border: 1px solid var(--control-line); border-radius: var(--radius); }
+.case-card h4 { margin-bottom: 6px; }
+.case-card pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 var(--mono); }
+.case-comparison > h3, .case-comparison > p { grid-column: 1 / -1; margin-bottom: 0; }
+#case-feedback { min-height: 1.5em; }
+@media (max-width: 700px) {
+  .case-pair, .case-comparison { grid-template-columns: 1fr; }
+  .case-content { padding: 0 16px 18px; }
+}

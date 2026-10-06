@@ -24,6 +24,14 @@ The JSON export uses `schemaVersion: 2`. Its top-level `scenario`, `turns` and `
 
 The measurements beside the replay are local diagnostics, not independent risk scores. The turn count tracks the example position, word similarity compares the prompt with four local reference phrases, and character variety describes the text distribution. These values do not establish malicious intent or model behavior. Local inspection time excludes a model request because none is connected.
 
+## Create a regression case
+
+Open **Create regression case** below the inspector to record one legitimate question with clean and poisoned retrieved context. Add attacker intent, source notes, model/revision/settings, and any responses you observed elsewhere. The page never fetches a context URL or calls a model. **Load synthetic fixture** fills a clearly fictional `.example` policy snippet for practice.
+
+The required and forbidden fields check exact, case-sensitive text in each supplied response. A missing response is **not evaluated**; an explicitly supplied empty response fails. A refusal that omits required text also fails that literal check. These checks are separate from the prompt inspection rules and do not measure safety or attack success by themselves.
+
+**Export case JSON** downloads a versioned `shadowprompt.regression-case` document containing the exact text, newlines and supplied provenance. **Import a case JSON file** accepts only the supported version within 100,000 bytes and keeps the current form if validation fails. **Copy issue summary** copies the case text and check states to the clipboard. The form stays in the current browser tab unless you export it. Files and case contents are not uploaded. This format is ShadowPrompt-specific; Promptfoo compatibility is not claimed.
+
 ## Local setup
 
 Use Node.js 22.11 or newer and Python 3.12. Development and release checks use these runtime families. Frontend dependencies are pinned in `package.json` and `package-lock.json`; Python runtime and test dependencies are pinned in the requirements files.
