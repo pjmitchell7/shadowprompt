@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TEST ONLY local live UI harness</title></head>
+<body class="shop-mode"><p id="test-harness-notice">TEST ONLY: local mock binding. No real model calls or measured model responses.</p><div id="shop-view"></div>
+<script type="module">
+  import '/css/style.css';
+  import '/css/shop.css';
+  import { mountShop } from '/src/shop.js';
+  import { createLiveState } from '/src/shop_live.js';
+  const productionGuard = new URL(location.href).searchParams.has('production-guard');
+  mountShop(document.querySelector('#shop-view'), { openCase() {}, liveState: createLiveState({ testOnly: !productionGuard }) });
+</script></body></html>

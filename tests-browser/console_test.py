@@ -68,7 +68,7 @@ def assert_first_action_in_view(page):
 
 
 def assert_control_contrast(page):
-    contrast = page.locator("select, textarea, input").evaluate_all("""controls => {
+    contrast = page.locator("#workbench-view select, #workbench-view textarea, #workbench-view input").evaluate_all("""controls => {
       const luminance = color => {
         const channels = color.match(/[0-9.]+/g).slice(0, 3).map(value => {
           const c = Number(value) / 255;
@@ -100,6 +100,7 @@ def inspect(page, payload):
 
 
 def run_checks(url, artifacts):
+    url = url.split("#")[0] + "#/inspect"
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(args=["--enable-unsafe-swiftshader"])
         context = browser.new_context(viewport={"width": 1440, "height": 900}, device_scale_factor=1)

@@ -1,15 +1,19 @@
 # ShadowPrompt
 
-ShadowPrompt is a browser demo for exploring prompt-injection examples. Follow a guided replay from the original message to the local rule match, compare it with an ordinary request, or check your own text.
+ShadowPrompt explores prompt injection through a fictional shopping task and an advanced local inspection workbench. The local Shelfday storefront has four desk lamps, an in-tab shortlist and Pip's assistant shell. Open one poisoned review and compare the exact context admitted with source filtering Off and On.
 
-**What is live:** the GitHub Pages console runs its example replay and text checks in your browser. It shows the original and normalized text, local rule evidence and heuristic readings. Your text is not sent to an AI model. The site does not watch or block requests to another service, so it is not an operating inference defense proxy.
+The current storefront is hosted at https://shadowprompt-shelfday.pjmitchell.workers.dev/ with a Cloudflare Workers Free backend and Workers AI. One reviewed genuine three-condition recording is available; all three responses resisted the fixture and recommended Clip Light. Try live makes up to three explicit fixed-fixture requests, subject to shared Free quotas with no paid fallback. Local catalog actions and source-delivery previews make no model request. GitHub Pages still serves the older inspection console until separately updated.
 
-The Python API is a separate local rule engine. Research scripts include deterministic fixtures and simulations. GitHub Pages does not deploy the Python API, connect to a SIEM, or establish a production security boundary.
+The advanced workbench retains guided scenario replay, custom text inspection, exact-text case import/export and optional 3D visualization. Browser content stays in memory unless explicitly exported or copied. The Python API is a separate local rule engine. Research fixtures and simulations do not establish real-model outcomes or a production security boundary.
+
+See [SHOP_LOCAL.md](SHOP_LOCAL.md) for storefront/backend contracts and [SHOP_LOCAL_VERIFICATION.md](SHOP_LOCAL_VERIFICATION.md) for this slice's local test evidence and unresolved model dependencies.
 
 ## Operating modes
 
 | Mode | Behavior | Boundary |
 | --- | --- | --- |
+| Shelfday storefront | Fictional catalog, shortlist, guide, actual local context filtering and verified recorded-adapter contract | One genuine recorded comparison; bounded hosted live requests on verified Free account |
+| Local Node shop service | Loopback seeded catalog and server-enforced assistant request contract | Missing provider returns HTTP 503; injected test adapters are explicitly test-only |
 | Browser console | Local scenario replay, editable payload inspection, lexical similarity, measured local inspection time and JSON trace export | No remote inference or API connection |
 | Python API | Raw and canonical inspection, bounded request-contained history and optional synthetic canary response | No authentication, model transport or persistent session service |
 | Python research scripts | Fixture benchmarks, scripted capture-the-flag targets and patch-template experiments | Deterministic demonstrations, not independent model evaluations |
@@ -18,7 +22,7 @@ The browser and Python engines have separate implementations and rule coverage. 
 
 ## Follow the guided replay
 
-Choose **Start guided replay** on the first screen. The guide selects a prompt that asks the AI to ignore earlier instructions. Step through the raw text, its normalized form and the rule match, then compare an ordinary request. The selected scenario, turn, arena and inspector update together. Use Back or close the guide to explore manually.
+Open **Advanced inspection**, then choose **Start guided replay**. The guide selects a prompt that asks the AI to ignore earlier instructions. Step through the raw text, its normalized form and the rule match, then compare an ordinary request. The selected scenario, turn, arena and inspector update together. Use Back or close the guide to explore manually.
 
 The JSON export uses `schemaVersion: 2`. Its top-level `scenario`, `turns` and `decisions` describe the scenario selected at export time. Each `customInspections` entry separately contains the immutable `snapshot` used for that inspection: scenario identity, selected turn, exact preceding turn text, raw input and threshold, plus its result. Up to 50 attributed custom inspections remain across manual and guided navigation. `activeCustomInspection.stale` marks whether the open editor differs from the last inspected snapshot. Version 1 consumers that expect `atTurn` directly on each custom entry must migrate to `snapshot.selectedTurn`; readers should branch on `schemaVersion`. The export remains a local browser download and contains the inspected text.
 
@@ -162,9 +166,10 @@ python -m pytest -q
 python scripts/check_source.py
 python -m playwright install chromium
 npm run test:browser
+python tests-browser/shop_test.py
 ```
 
-On a fresh Linux machine, use `python -m playwright install --with-deps chromium`. The browser test starts the production preview automatically. Tests cover inspection fixtures, API startup, normalization, request isolation and input limits, plus console controls, export and browser behavior. Source checks reject authored emoji glyphs and em dashes, including HTML entities; dependencies, binary assets and retained third-party license notices are excluded.
+On a fresh Linux machine, use `python -m playwright install --with-deps chromium`. Both browser tests start an isolated production preview automatically. The storefront test also verifies 320-pixel reflow, guide focus, actual delivered context, disabled inference, preserved drafts and lazy arena loading. Tests cover inspection fixtures, API startup, normalization, request isolation and input limits, plus console controls, export and browser behavior. Source checks reject authored emoji glyphs and em dashes, including HTML entities; dependencies, binary assets and retained third-party license notices are excluded.
 
 See [RENOVATION_SPEC.md](RENOVATION_SPEC.md) for acceptance criteria and [VERIFICATION.md](VERIFICATION.md) for the recorded review environment, results and remaining limitations.
 

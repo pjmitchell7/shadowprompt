@@ -275,13 +275,13 @@ export class Arena {
   }
 
   invalidate() {
-    if (this.raf !== null || this.disposed || !this.available || !this.visible || document.hidden) return;
+    if (this.raf !== null || this.disposed || !this.available || this.suspended || !this.visible || document.hidden) return;
     this.raf = requestAnimationFrame(time => this.render(time));
   }
 
   render(time) {
     this.raf = null;
-    if (this.disposed || !this.available || !this.visible || document.hidden) return;
+    if (this.disposed || !this.available || this.suspended || !this.visible || document.hidden) return;
     if (this.transition) {
       const progress = Math.min((time - this.transition.start) / 450, 1);
       this.camera.position.lerpVectors(this.transition.from, this.transition.to, 1 - (1 - progress) ** 3);
@@ -354,8 +354,14 @@ export class Arena {
   cancelFrame() { if (this.raf !== null) cancelAnimationFrame(this.raf); this.raf = null; }
 
   visibilityChanged() {
-    if (document.hidden || !this.visible) this.cancelFrame();
+    if (this.suspended || document.hidden || !this.visible) this.cancelFrame();
     else this.invalidate();
+  }
+
+  setActive(active) {
+    this.suspended = !active;
+    if (!active) { this.transition = null; this.pulseUntil = 0; this.cancelFrame(); }
+    else { this.resize(); this.visibilityChanged(); }
   }
 
   getStats() {

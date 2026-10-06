@@ -122,3 +122,9 @@ Explain local elapsed time, example turn count, lexical reference-word overlap a
 Benchmark reports identify unique in-repository fixtures, the repeat count, total fixture evaluations, classification counts, scope and timing scope. A repeated sample count is never described as unique attack-vector coverage. A reproduced perfect fixture score is labeled with its exact small sample and does not imply model-level protection or effective blocking.
 
 Acceptance: a visitor can complete and reverse the guide by keyboard, inspect a real rule match, compare a benign no-match and then close the guide without corrupting manual replay. Metric explanations remain accessible and responsive. Repository and API benchmark output names rule matches and fixture evaluations accurately, publishes the included fixture names, and passes both zero-sample and repeated-sample reconciliation checks.
+
+## Follow-up: Shelfday local storefront
+
+The approved shopping entry adds the fictional Shelfday store and Pip assistant, with short visitor-paced contextual guidance. Warm storefront styling is scoped to shopping; the dark advanced workspace and its existing evidence, text, lifecycle and accessibility contracts remain available. This supersedes the earlier single-workspace and no-narration restrictions only for this new entry experience. Implementation is authorized as a local diff using Sol 6.1. Earlier publication instructions do not apply to this slice.
+
+Use actual JavaScript scanning for a local source-delivery comparison and a minimal loopback catalog/assistant contract. Genuine recorded evidence remains unavailable until captured and reviewed. Try live remains disabled until provider, model, credential use, retention and spending are explicitly authorized. No fabricated model responses, real commerce, credential reads, provider requests, push or deployment are part of this implementation.
